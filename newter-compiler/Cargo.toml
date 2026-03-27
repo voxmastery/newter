@@ -1,6 +1,6 @@
 [package]
 name = "newter-compiler"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "A UI language compiler — 58 built-in elements, compiles to canvas, HTML, and JSON"
 authors = ["Ganesh <voxmastery@gmail.com>"]

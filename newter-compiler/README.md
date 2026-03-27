@@ -1,66 +1,91 @@
-# Newt — Design Canvas Compiler
+# newter-compiler
 
-A **Rust**-based compiler and live canvas for the **Newt** UI language. Architecture B: parse source → layout → render on a **wgpu** canvas (S-tier stack).
+[![Crates.io](https://img.shields.io/crates/v/newter-compiler.svg)](https://crates.io/crates/newter-compiler)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/voxmastery/newter/blob/main/LICENSE)
 
-## Prerequisites
+**The compiler for [Newt](https://github.com/voxmastery/newter) — a UI language that compiles to canvas, HTML, and JSON.**
 
-- **Rust** (1.70+): [rustup](https://rustup.rs)
-- **GPU** with Vulkan, Metal, or D3D12 support
+Describe a UI in a `.newt` file. The compiler outputs a GPU-rendered canvas, a standalone HTML page, or a JSON layout tree — from the same source.
 
-## Build & Run
-
-```bash
-cd newter-compiler
-cargo build --release
-cargo run --release
-```
-
-Run with a specific `.newt` file:
+## Install
 
 ```bash
-cargo run --release -- examples/hello.newt
+cargo install newter-compiler
 ```
 
-## Newt Language (UI/visual DSL)
+## Hello World
 
-- **Variables:** `let name = value;` (numbers, strings, colors `#RRGGBB`)
-- **Screens:** `screen Main { ... }` — root UI tree
-- **Layout:** `column`, `row`, `stack`, `center` with `gap`, `padding`
-- **Elements:** `box`, `text`, `button`, `input`, `spacer`, `image`
-- **Props:** `fill`, `stroke`, `radius`, `width`, `height`, `fontSize`, `content`, etc.
-
-Example:
+Create `hello.newt`:
 
 ```newt
-let padding = 24;
-
 screen Main {
-  column { gap: 16, padding: padding } {
-    box { fill: #ffffff, radius: 8, padding: 16 } {
-      text { content: "Hello", fontSize: 24 }
-    }
-    row { gap: 12 } {
-      box { fill: #e0e0e0, radius: 4 } { text { content: "A" } }
-      box { fill: #e0e0e0, radius: 4 } { text { content: "B" } }
-    }
-  }
+    center(fill: #f9fafb)(
+        column(gap: 16)(
+            text("Hello, Newt!", fontSize: 32, fontWeight: "700")
+            text("Your first UI in 3 lines")
+        )
+    )
 }
 ```
 
-## Project layout
+Run it:
 
-- `src/lexer.rs` — tokenizer
-- `src/parser.rs` — recursive descent parser
-- `src/ast.rs` — AST types
-- `src/value.rs` — interpreter (eval) for expressions
-- `src/layout.rs` — flex-like layout → `LayoutNode` + `Rect`
-- `src/renderer/` — wgpu canvas (rects; text can be added via glyphon)
-- `src/app.rs` — winit event loop, window, redraw
-- `src/main.rs` — CLI entry, optional file path
+```bash
+newter-compiler serve hello.newt
+# Open http://localhost:3333
+```
 
-## Next steps
+## What you get
 
-- Text rendering (glyphon)
-- Hot-reload (notify) when the `.newt` file changes
-- Rounded rects in the shader
-- Pan/zoom on the canvas
+```bash
+newter-compiler run app.newt                          # GPU canvas window
+newter-compiler serve app.newt                        # Browser IDE + hot reload
+newter-compiler build app.newt --html -o out.html     # Standalone HTML file
+newter-compiler check app.newt                        # Validate syntax
+```
+
+## The language
+
+58 built-in elements. Reactive state. Components. Themes. Imports. A syntax you can learn in 5 minutes.
+
+```newt
+state count = 0
+
+screen Counter {
+    column(gap: 24, padding: 32)(
+        text("Count: {count}", fontSize: 32)
+        row(gap: 12)(
+            button("+1", fill: #2563eb, radius: 8, onClick: { count = count + 1 })
+            button("Reset", fill: #ef4444, radius: 8, onClick: { count = 0 })
+        )
+    )
+}
+```
+
+**Same UI, less code:**
+
+| | Newt | React |
+|---|---|---|
+| A button with a counter | 8 lines | 20+ lines |
+| No build step | Yes | No |
+| No runtime | Yes (HTML export) | No |
+
+## Why
+
+Describing a UI shouldn't require picking a framework first. Newt separates *what you want to see* from *how it gets rendered*. One source, multiple targets.
+
+## Docs
+
+- [Getting Started](https://newter.vercel.app/docs/getting-started)
+- [Language Reference](https://newter.vercel.app/docs/language)
+- [58 Built-in Elements](https://newter.vercel.app/docs/language/elements)
+- [CLI Reference](https://newter.vercel.app/docs/compiler/cli)
+- [Examples](https://newter.vercel.app/docs/examples)
+
+## Status
+
+**Alpha (v0.1)** — functional but evolving. Expect breaking changes.
+
+## License
+
+MIT

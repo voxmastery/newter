@@ -1,22 +1,56 @@
 # Newt
 
+[![Crates.io](https://img.shields.io/crates/v/newter-compiler.svg)](https://crates.io/crates/newter-compiler)
+[![CI](https://github.com/voxmastery/newter/actions/workflows/ci.yml/badge.svg)](https://github.com/voxmastery/newter/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **A UI language that compiles to canvas, HTML, and JSON.**
 
 Describing a UI shouldn't require picking a framework first. Newt gives you 58 built-in elements, reactive state, and a syntax you can learn in 5 minutes. Write once, compile to a GPU canvas, static HTML, or a JSON layout tree.
 
 > **Status: alpha (v0.1)** — functional but the language is evolving. Expect breaking changes.
 
-```newt
-state count = 0
+## The idea
 
-screen Counter {
-    column(gap: 24, padding: 32)(
-        text("Count: {count}", fontSize: 32)
-        row(gap: 12)(
-            button("+ Add", fill: #2563eb, radius: 8, onClick: { count = count + 1 })
-            button("Reset", fill: #6b7280, radius: 8, onClick: { count = 0 })
+```
+┌─────────────────┐     ┌──────────────┐
+│                 │     │ GPU Canvas   │  newter-compiler run
+│   .newt file    │────▶│ HTML Page    │  newter-compiler build --html
+│                 │     │ JSON Tree    │  newter-compiler build --json
+└─────────────────┘     └──────────────┘
+```
+
+One source file. Three output targets. No framework, no runtime, no build step.
+
+## Same UI, less code
+
+**Newt (8 lines):**
+```newt
+screen Main {
+    column(gap: 16, padding: 24)(
+        text("Hello!", fontSize: 24, fontWeight: "700")
+        row(gap: 8)(
+            button("Click me", fill: #7c3aed, radius: 8)
+            button("Cancel", stroke: #e5e7eb, radius: 8)
         )
     )
+}
+```
+
+**React equivalent (20+ lines):**
+```jsx
+function App() {
+  return (
+    <div style={{display:'flex', flexDirection:'column', gap:'16px', padding:'24px'}}>
+      <h1 style={{fontSize:'24px', fontWeight:700}}>Hello!</h1>
+      <div style={{display:'flex', gap:'8px'}}>
+        <button style={{background:'#7c3aed', color:'#fff', borderRadius:'8px',
+          border:'none', padding:'8px 16px'}}>Click me</button>
+        <button style={{border:'1px solid #e5e7eb', borderRadius:'8px',
+          background:'transparent', padding:'8px 16px'}}>Cancel</button>
+      </div>
+    </div>
+  );
 }
 ```
 
@@ -31,18 +65,17 @@ Or download a pre-built binary from [GitHub Releases](https://github.com/voxmast
 ## Quick start
 
 ```bash
-# Create hello.newt with the code above, then:
+# Create hello.newt, then:
 newter-compiler serve hello.newt
 # Open http://localhost:3333
 ```
-
-Three commands, three output targets:
 
 | Command | What it does |
 |---------|-------------|
 | `newter-compiler run app.newt` | GPU-rendered canvas window |
 | `newter-compiler serve app.newt` | Browser IDE with hot reload |
 | `newter-compiler build app.newt --html -o out.html` | Standalone HTML file |
+| `newter-compiler check app.newt` | Validate syntax (for CI) |
 
 ## What's in the box
 
@@ -66,9 +99,9 @@ Syntax highlighting, diagnostics, completions, hover info, and go-to-definition.
 
 ## Documentation
 
-Full docs at [newter.vercel.app](https://newter.vercel.app):
+Full docs at **[newter.vercel.app](https://newter.vercel.app)**
 
-- [Getting Started](https://newter.vercel.app/docs/getting-started) — install + hello world in 60 seconds
+- [Getting Started](https://newter.vercel.app/docs/getting-started) — zero to running UI in 60 seconds
 - [Language Reference](https://newter.vercel.app/docs/language) — elements, props, components, state, themes
 - [Compiler Guide](https://newter.vercel.app/docs/compiler) — pipeline, CLI, HTML export, Canvas IDE
 - [Examples](https://newter.vercel.app/docs/examples) — counter, dashboard, form, landing page
