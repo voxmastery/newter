@@ -1,0 +1,228 @@
+// =============================================================================
+// Typewriter-style screens — matches typewriter app palette and layout.
+// Colors: bone #EBE9E4, acid #FDFD66, ink #111111 (globals.css).
+// =============================================================================
+
+let bone = #EBE9E4;
+let acid = #FDFD66;
+let ink = #111111;
+let padding = 24;
+let radius = 24;
+
+// ---- Landing: nav pill + hero (THINK. WRITE. DON'T LOOK BACK.) + CTAs ----
+screen(LandingPage) {
+    container ( fill: bone ) (
+        column ( gap: 32, padding: 48 ) (
+            row ( gap: 16, padding: 16, fill: bone, stroke: ink, radius: 999 ) (
+                box ( fill: ink, radius: 999, width: 32, height: 32 ) (
+                    text("A_", fontSize: 12, fill: acid)
+                )
+                text("Analog Protocol", fontSize: 14)
+                button("Get Started", fill: acid, stroke: ink, radius: 999)
+            )
+            row ( gap: 48 ) (
+                column ( gap: 24, padding: 32, fill: #ffffff, stroke: ink, radius: radius ) (
+                    text("THINK.", fontSize: 48)
+                    text("WRITE.", fontSize: 48)
+                    text("DON'T LOOK BACK.", fontSize: 48)
+                    text("The Analog Protocol disables your backspace key. Forward momentum only.", fontSize: 14)
+                    row ( gap: 16 ) (
+                        button("Initialize Session", fill: ink, stroke: ink, radius: 12)
+                        button("Watch Demo", stroke: ink, radius: 12)
+                    )
+                )
+                column ( gap: 16 ) (
+                    card ( fill: bone, stroke: ink, radius: radius, padding: 24 ) (
+                        text("Draft_01.txt", fontSize: 10)
+                        text("The creative process is a delicate thing...", fontSize: 14)
+                    )
+                    card ( fill: acid, stroke: ink, radius: radius, padding: 24 ) (
+                        text("100%", fontSize: 36)
+                        text("Focus Retention", fontSize: 10)
+                    )
+                )
+            )
+        )
+    )
+}
+
+// ---- Home (Choose Your Mode): header + stats + 3 mode cards + Quick Actions ----
+screen(HomeScreen) {
+    header (
+        row ( gap: 16, padding: 24, stroke: ink ) (
+            box ( fill: ink, radius: 999, width: 48, height: 48 ) (
+                text("A_", fontSize: 14, fill: acid)
+            )
+            column ( gap: 2 ) (
+                text("Analog Protocol", fontSize: 18)
+                text("Think. Write. Don't look back.", fontSize: 10)
+            )
+            button("Settings", stroke: ink, radius: 999)
+        )
+    )
+    container ( fill: bone ) (
+        column ( gap: 32, padding: 32 ) (
+            column ( gap: 8 ) (
+                text("Choose Your Mode", fontSize: 36)
+                text("Select how you want to write today.", fontSize: 14)
+            )
+            row ( gap: 16 ) (
+                card ( fill: #ffffff, stroke: ink, radius: 16, padding: 16 ) (
+                    text("Current Streak", fontSize: 10)
+                    text("0 days", fontSize: 24)
+                )
+                card ( fill: #ffffff, stroke: ink, radius: 16, padding: 16 ) (
+                    text("Sessions", fontSize: 10)
+                    text("0", fontSize: 24)
+                )
+                card ( fill: #ffffff, stroke: ink, radius: 16, padding: 16 ) (
+                    text("Projects", fontSize: 10)
+                    text("0", fontSize: 24)
+                )
+                card ( fill: #ffffff, stroke: ink, radius: 16, padding: 16 ) (
+                    text("Total Words", fontSize: 10)
+                    text("0", fontSize: 24)
+                )
+            )
+            row ( gap: 24 ) (
+                card ( fill: ink, stroke: ink, radius: radius, padding: 32 ) (
+                    column ( gap: 12 ) (
+                        text("Main Feature", fontSize: 9)
+                        text("START SESSION", fontSize: 24)
+                        text("Flow state writing", fontSize: 10)
+                        text("Backspace disabled. Pure forward momentum.", fontSize: 14)
+                        row ( gap: 8 ) (
+                            text("Backspace disabled", fontSize: 10)
+                            text("Session targets", fontSize: 10)
+                        )
+                        box ( fill: acid, radius: 999, width: 48, height: 48 ) ( text("→", fontSize: 20) )
+                    )
+                )
+                card ( fill: bone, stroke: ink, radius: radius, padding: 32 ) (
+                    column ( gap: 12 ) (
+                        text("PROJECT LIBRARY", fontSize: 24)
+                        text("Documentation & collaboration", fontSize: 10)
+                        text("Organize work into projects.", fontSize: 14)
+                        box ( fill: ink, radius: 999, width: 48, height: 48 ) ( text("→", fontSize: 20, fill: bone) )
+                    )
+                )
+                card ( fill: bone, stroke: ink, radius: radius, padding: 32 ) (
+                    column ( gap: 12 ) (
+                        text("QUICK WRITE", fontSize: 24)
+                        text("Simple personal notes", fontSize: 10)
+                        text("No structure. Just write.", fontSize: 14)
+                        box ( fill: ink, radius: 999, width: 48, height: 48 ) ( text("→", fontSize: 20, fill: bone) )
+                    )
+                )
+            )
+            column ( gap: 16, padding: 32, stroke: ink ) (
+                text("Quick Actions", fontSize: 12)
+                row ( gap: 12 ) (
+                    button("Quick Session (500 words)", fill: acid, stroke: ink, radius: 999)
+                    button("30 Minute Session", stroke: ink, radius: 999)
+                    button("New Quick Note", stroke: ink, radius: 999)
+                    button("View Analytics", stroke: ink, radius: 999)
+                )
+            )
+            row ( gap: 16, padding: 24, stroke: ink ) (
+                text("Analog Protocol v2.0", fontSize: 10)
+                text("Built for the focused mind", fontSize: 10)
+            )
+        )
+    )
+}
+
+// ---- Dashboard (Project Library): sidebar + main with filters and project cards ----
+screen(Dashboard) {
+    container ( fill: bone ) (
+        row ( gap: 16 ) (
+            column ( gap: 16, padding: 24, width: 280 ) (
+                card ( fill: bone, stroke: ink, radius: radius, padding: 24 ) (
+                    text("Global Stats", fontSize: 10)
+                    text("Total Words", fontSize: 10)
+                    text("0", fontSize: 18)
+                    text("Active Projects", fontSize: 10)
+                    text("0", fontSize: 18)
+                )
+                card ( fill: bone, stroke: ink, radius: radius, padding: 24 ) (
+                    text("Quick Access", fontSize: 10)
+                    button("+ Create Project", fill: acid, stroke: ink, radius: 12)
+                )
+                card ( fill: acid, stroke: ink, radius: radius, padding: 24 ) (
+                    text("Operations", fontSize: 10)
+                    text("+ NEW PROJECT", fontSize: 10)
+                    text("MANAGE TEAMS", fontSize: 10)
+                    text("SETTINGS", fontSize: 10)
+                )
+            )
+            column ( gap: 24, padding: 32, grow: 1 ) (
+                row ( gap: 16, padding: 16, stroke: ink ) (
+                    column ( gap: 8 ) (
+                        text("Project Library", fontSize: 24)
+                        row ( gap: 8 ) (
+                            button("ALL PROJECTS", fill: ink, stroke: ink, radius: 999)
+                            button("PERSONAL", stroke: ink, radius: 999)
+                            button("TEAM PROJECTS", stroke: ink, radius: 999)
+                        )
+                    )
+                    button("+ New Project", fill: ink, stroke: ink, radius: 999)
+                )
+                row ( gap: 24 ) (
+                    card ( fill: bone, stroke: ink, radius: 16, padding: 20 ) (
+                        text("+", fontSize: 32)
+                        text("New Project", fontSize: 14)
+                    )
+                    card ( fill: #ffffff, stroke: ink, radius: 16, padding: 20 ) (
+                        column ( gap: 8 ) (
+                            text("Preview text...", fontSize: 8)
+                            text("Project A", fontSize: 14)
+                            row ( gap: 16 ) (
+                                text("Words", fontSize: 9)
+                                text("Modified", fontSize: 9)
+                            )
+                        )
+                    )
+                    card ( fill: #ffffff, stroke: ink, radius: 16, padding: 20 ) (
+                        column ( gap: 8 ) (
+                            text("Preview text...", fontSize: 8)
+                            text("Project B", fontSize: 14)
+                            row ( gap: 16 ) (
+                                text("Words", fontSize: 9)
+                                text("Modified", fontSize: 9)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+}
+
+// ---- Login: centered card ----
+screen(Login) {
+    container ( fill: bone ) (
+        center (
+            card ( fill: bone, stroke: ink, radius: radius, padding: 32 ) (
+                column ( gap: 20, padding: 24 ) (
+                    text("Log in", fontSize: 24)
+                    input
+                    input
+                    button("Continue", fill: ink, stroke: ink, radius: 12)
+                    text("Magic link", fontSize: 14)
+                )
+            )
+        )
+    )
+}
+
+// ---- Settings: list of sections ----
+screen(Settings) {
+    container ( fill: bone ) (
+        column ( gap: 8, padding: 24 ) (
+            text("Settings", fontSize: 24)
+            card ( fill: bone, stroke: ink, radius: 12, padding: 16 ) ( text("Profile") )
+            card ( fill: bone, stroke: ink, radius: 12, padding: 16 ) ( text("Format") )
+            card ( fill: bone, stroke: ink, radius: 12, padding: 16 ) ( text("Security") )
+        )
+    )
+}

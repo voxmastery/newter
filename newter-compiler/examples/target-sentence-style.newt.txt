@@ -1,0 +1,18 @@
+// =============================================================================
+// TARGET SYNTAX — English-like (not yet supported by parser)
+// Copy this into LANGUAGE_SPEC.md as the goal. When the parser supports
+// sentence style, this file can be renamed to .newt and run.
+// =============================================================================
+
+The variable padding is 20.
+The variable cardFill is #ffffff.
+The variable accent is #2563eb.
+
+A screen named Main contains
+  a column with gap 20 and padding padding, and inside it:
+    a box with fill cardFill, radius 12, padding 24 and stroke #e5e7eb, and inside it:
+      text saying "Newt Canvas" with fontSize 28.
+    a row with gap 12, and inside it:
+      a button labeled "One" with fill #f3f4f6 and radius 8.
+      a button labeled "Two" with fill #f3f4f6 and radius 8.
+      a button labeled "Three" with fill accent and radius 8.

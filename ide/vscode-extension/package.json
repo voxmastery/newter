@@ -1,0 +1,120 @@
+{
+  "name": "newt-language",
+  "displayName": "Newt UI Language",
+  "description": "Full language support for Newt — a declarative UI DSL for building layouts and screens. Includes syntax highlighting, LSP diagnostics, run/check commands, live preview, and HTML export.",
+  "version": "0.1.0",
+  "publisher": "voxmastery",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#1a1a2e",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/voxmastery/newter"
+  },
+  "bugs": {
+    "url": "https://github.com/voxmastery/newter/issues"
+  },
+  "homepage": "https://github.com/voxmastery/newter/tree/main/ide/vscode-extension#readme",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Programming Languages", "Linters", "Formatters"],
+  "keywords": ["newt", "ui", "dsl", "layout", "design"],
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:newt",
+    "onCommand:newt.run",
+    "onCommand:newt.check",
+    "onCommand:newt.exportHtml",
+    "onCommand:newt.serve"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "newt",
+        "aliases": ["Newt", "newt"],
+        "extensions": [".newt"],
+        "configuration": "./language-configuration.json",
+        "firstLineMatch": "^\\s*(let|screen|component)"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "newt",
+        "scopeName": "source.newt",
+        "path": "./syntaxes/newt.tmLanguage.json"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "newt.run",
+        "key": "ctrl+shift+n",
+        "mac": "cmd+shift+n"
+      },
+      {
+        "command": "newt.serve",
+        "key": "ctrl+shift+l",
+        "mac": "cmd+shift+l"
+      }
+    ],
+    "commands": [
+      {
+        "command": "newt.run",
+        "title": "Run current file",
+        "category": "Newt"
+      },
+      {
+        "command": "newt.check",
+        "title": "Check current file",
+        "category": "Newt"
+      },
+      {
+        "command": "newt.exportHtml",
+        "title": "Export to HTML",
+        "category": "Newt"
+      },
+      {
+        "command": "newt.serve",
+        "title": "Open Canvas IDE (live preview)",
+        "category": "Newt"
+      }
+    ],
+    "configuration": {
+      "title": "Newt",
+      "properties": {
+        "newt.compilerPath": {
+          "type": "string",
+          "default": "newter-compiler",
+          "description": "Path to the newter-compiler binary (or full path)"
+        },
+        "newt.lsp.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable LSP diagnostics (requires newter-lsp)"
+        },
+        "newt.lsp.path": {
+          "type": "string",
+          "default": "newter-lsp",
+          "description": "Path to the newter-lsp binary"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.0"
+  }
+}

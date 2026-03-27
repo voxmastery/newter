@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newt Canvas IDE</title>
+<style>
+/* ====== RESET & BASE ====== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0e0e11;
+  --bg-surface: #16161a;
+  --bg-panel: #1c1c22;
+  --bg-hover: #26262e;
+  --border: #2a2a34;
+  --text: #e2e2e8;
+  --text-dim: #8888a0;
+  --accent: #7c5cfc;
+  --accent-dim: #5a3fd4;
+  --success: #34d399;
+  --error: #f87171;
+  --warning: #fbbf24;
+  --canvas-bg: #1a1a20;
+  --canvas-dot: #2a2a34;
+  --toolbar-w: 48px;
+  --panel-w: 420px;
+  --topbar-h: 40px;
+  --statusbar-h: 28px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; }
+
+/* ====== LAYOUT ====== */
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+/* Top Bar */
+#topbar {
+  height: var(--topbar-h); display: flex; align-items: center; gap: 12px;
+  padding: 0 12px; background: var(--bg-surface); border-bottom: 1px solid var(--border);
+  flex-shrink: 0; z-index: 100;
+}
+#topbar .logo { font-weight: 700; font-size: 14px; color: var(--accent); letter-spacing: -0.5px; }
+#topbar .filename { color: var(--text-dim); font-size: 12px; font-family: var(--font-mono); }
+#topbar #screen-select {
+  margin-left: 12px; padding: 4px 8px; font-size: 12px; font-family: var(--font-mono);
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); cursor: pointer; max-width: 160px;
+}
+#topbar #screen-select:hover { border-color: var(--accent); }
+#topbar .status { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 11px; }
+#topbar .status .dot { width: 6px; height: 6px; border-radius: 50%; }
+#topbar .status .dot.ok { background: var(--success); }
+#topbar .status .dot.err { background: var(--error); }
+
+/* Main area */
+#main { display: flex; flex: 1; overflow: hidden; }
+
+/* Left Toolbar */
+#toolbar {
+  width: var(--toolbar-w); background: var(--bg-surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; padding: 8px 0; gap: 2px; flex-shrink: 0;
+}
+.tool-btn {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; cursor: pointer; color: var(--text-dim); border: none; background: none;
+  transition: all 0.15s;
+}
+.tool-btn:hover { background: var(--bg-hover); color: var(--text); }
+.tool-btn.active { background: var(--accent-dim); color: #fff; }
+.tool-btn svg { width: 18px; height: 18px; }
+.tool-sep { height: 1px; width: 24px; background: var(--border); margin: 4px 0; }
+
+/* Canvas Area */
+#canvas-area {
+  flex: 1; min-width: 280px; position: relative; overflow: hidden; background: var(--canvas-bg);
+}
+#canvas {
+  position: absolute; top: 0; left: 0; cursor: default;
+}
+#canvas-area.panning { cursor: grab; }
+#canvas-area.panning:active { cursor: grabbing; }
+
+/* Zoom indicator */
+#zoom-indicator {
+  position: absolute; bottom: 12px; right: 12px; display: flex; align-items: center; gap: 6px;
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px;
+  font-size: 11px; color: var(--text-dim); z-index: 10; user-select: none;
+}
+#zoom-indicator button {
+  background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px;
+  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  border-radius: 4px;
+}
+#zoom-indicator button:hover { background: var(--bg-hover); color: var(--text); }
+
+/* Right Panel (Code Editor + Properties) */
+#right-panel {
+  width: var(--panel-w); min-width: 260px; max-width: 80%; background: var(--bg-surface); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0;
+}
+#panel-tabs {
+  display: flex; height: 32px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.panel-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-dim); cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent; transition: all 0.15s;
+}
+.panel-tab:hover { color: var(--text); background: var(--bg-hover); }
+.panel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+#editor-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#props-panel { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+#editor-panel.active { display: flex; }
+#props-panel.active { display: flex; }
+#state-panel { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+#state-panel.active { display: flex; }
+#code-editor {
+  flex: 1; background: var(--bg-panel); color: var(--text); font-family: var(--font-mono);
+  font-size: 13px; line-height: 1.6; padding: 12px; border: none; outline: none;
+  resize: none; tab-size: 2; white-space: pre; overflow: auto;
+}
+#code-editor::selection { background: rgba(124, 92, 252, 0.3); }
+
+/* Properties panel */
+#props-content { padding: 12px; overflow-y: auto; flex: 1; }
+.prop-group { margin-bottom: 16px; }
+.prop-group-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-dim); margin-bottom: 8px;
+}
+.prop-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.prop-label { font-size: 11px; color: var(--text-dim); width: 70px; flex-shrink: 0; }
+.prop-value {
+  font-size: 12px; font-family: var(--font-mono); color: var(--text);
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  padding: 3px 6px; flex: 1;
+}
+
+/* Error overlay */
+#error-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(248, 113, 113, 0.12); border-top: 1px solid var(--error);
+  padding: 8px 16px; font-size: 12px; color: var(--error); font-family: var(--font-mono);
+  display: none; z-index: 20; max-height: 100px; overflow-y: auto;
+  white-space: pre-wrap;
+}
+#error-bar.visible { display: block; }
+
+/* Status Bar */
+#statusbar {
+  height: var(--statusbar-h); background: var(--bg-surface); border-top: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 12px; font-size: 11px; color: var(--text-dim);
+  gap: 16px; flex-shrink: 0;
+}
+
+/* Node hover highlight */
+.node-highlight {
+  position: absolute; pointer-events: none; border: 2px solid var(--accent);
+  background: rgba(124, 92, 252, 0.08); z-index: 5;
+}
+.node-label {
+  position: absolute; top: -18px; left: 0; background: var(--accent); color: #fff;
+  font-size: 10px; padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+  font-weight: 600;
+}
+
+/* Canvas dot grid */
+#canvas-area::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.5;
+}
+
+/* Selection box on canvas */
+.selection-box {
+  position: absolute; border: 1px solid var(--accent); background: rgba(124, 92, 252, 0.1);
+  pointer-events: none; z-index: 6;
+}
+
+/* Resize handle */
+#resize-handle {
+  width: 8px; cursor: col-resize; background: transparent; flex-shrink: 0;
+  transition: background 0.15s; position: relative;
+}
+#resize-handle::after {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 3px; height: 40px; border-radius: 2px; background: var(--border);
+  pointer-events: none;
+}
+#resize-handle:hover { background: rgba(124, 92, 252, 0.15); }
+#resize-handle:hover::after { background: var(--accent); }
+#resize-handle.dragging { background: rgba(124, 92, 252, 0.2); }
+#resize-handle.dragging::after { background: var(--accent); }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top Bar -->
+  <div id="topbar">
+    <span class="logo">Newt</span>
+    <span class="filename" id="filename">untitled.newt</span>
+    <select id="screen-select" title="Choose screen to preview (multi-screen apps)"></select>
+    <div class="status">
+      <span id="status-text">Connected</span>
+      <span class="dot ok" id="status-dot"></span>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main">
+    <!-- Toolbar -->
+    <div id="toolbar">
+      <button class="tool-btn active" data-tool="select" title="Select (V)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="pan" title="Pan (H)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V5a2 2 0 0 0-4 0v9"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+      </button>
+      <div style="flex:1"></div>
+      <button class="tool-btn" data-tool="zoom-fit" title="Zoom to Fit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+      </button>
+    </div>
+
+    <!-- Canvas -->
+    <div id="canvas-area">
+      <canvas id="canvas"></canvas>
+      <div id="error-bar"></div>
+      <div id="zoom-indicator">
+        <button id="zoom-out">−</button>
+        <span id="zoom-level">100%</span>
+        <button id="zoom-in">+</button>
+      </div>
+    </div>
+
+    <!-- Resize Handle -->
+    <div id="resize-handle"></div>
+
+    <!-- Right Panel -->
+    <div id="right-panel">
+      <div id="panel-tabs">
+        <button class="panel-tab active" data-panel="editor">Code</button>
+        <button class="panel-tab" data-panel="props">Properties</button>
+        <button class="panel-tab" data-panel="state">State</button>
+      </div>
+      <div id="editor-panel" class="active">
+        <textarea id="code-editor" spellcheck="false"></textarea>
+      </div>
+      <div id="props-panel">
+        <div id="props-content">
+          <div class="prop-group">
+            <div class="prop-group-title">Selection</div>
+            <div id="no-selection" style="color: var(--text-dim); font-size: 12px;">No element selected</div>
+            <div id="selection-props" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+      <div id="state-panel">
+        <div id="state-content" style="padding:12px;overflow-y:auto;flex:1;">
+          <div class="prop-group">
+            <div class="prop-group-title">State Variables</div>
+            <div id="no-state" style="color:var(--text-dim);font-size:12px;">No state variables</div>
+            <div id="state-vars" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div id="statusbar">
+    <span id="node-count">0 nodes</span>
+    <span id="viewport-info">960 × 640</span>
+    <span style="flex:1"></span>
+    <span id="cursor-pos"></span>
+  </div>
+</div>
+
+<script>
+// ==================== NEWT CANVAS IDE ====================
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+// ---- State ----
+let layoutData = null;
+let sourceCode = '';
+let ws = null;
+let currentTool = 'select';
+let zoom = 1;
+let panX = 40, panY = 60;
+let isPanning = false;
+let panStartX = 0, panStartY = 0;
+let hoveredNode = null;
+let selectedNode = null;
+let allNodes = [];  // flat list for hit testing
+let _canvasState = {};
+const canvas = $('#canvas');
+const ctx = canvas.getContext('2d');
+const canvasArea = $('#canvas-area');
+
+// ---- WebSocket ----
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws.onopen = () => {
+    $('#status-text').textContent = 'Connected';
+    $('#status-dot').className = 'dot ok';
+  };
+  ws.onclose = () => {
+    $('#status-text').textContent = 'Disconnected';
+    $('#status-dot').className = 'dot err';
+    setTimeout(connectWS, 2000);
+  };
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'layout') {
+        layoutData = msg;
+        _canvasState = msg.state || {};
+        hideError();
+        updateScreenSelector(layoutData);
+        scheduleRender();
+        updateNodeCount();
+        updateStatePanel();
+      } else if (msg.type === 'source') {
+        sourceCode = msg.code;
+        $('#code-editor').value = sourceCode;
+        if (msg.filename) $('#filename').textContent = msg.filename;
+      } else if (msg.type === 'error') {
+        showError(msg.message);
+      }
+    } catch (err) {
+      console.error('ws parse error', err);
+    }
+  };
+}
+
+// ---- Editor ----
+let compileTimeout = null;
+$('#code-editor').addEventListener('input', (e) => {
+  sourceCode = e.target.value;
+  clearTimeout(compileTimeout);
+  compileTimeout = setTimeout(() => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(sourceCode);
+    }
+  }, 300);
+});
+
+// ---- Panel Tabs ----
+$$('.panel-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.panel-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const panel = tab.dataset.panel;
+    $('#editor-panel').classList.toggle('active', panel === 'editor');
+    $('#props-panel').classList.toggle('active', panel === 'props');
+    $('#state-panel').classList.toggle('active', panel === 'state');
+  });
+});
+
+// ---- Tools ----
+$$('.tool-btn[data-tool]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tool = btn.dataset.tool;
+    if (tool === 'zoom-fit') { zoomToFit(); return; }
+    currentTool = tool;
+    $$('.tool-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    canvasArea.classList.toggle('panning', tool === 'pan');
+  });
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.target === $('#code-editor')) return;
+  switch(e.key.toLowerCase()) {
+    case 'v': selectTool('select'); break;
+    case 'h': selectTool('pan'); break;
+    case '=': case '+': zoomBy(0.1); break;
+    case '-': zoomBy(-0.1); break;
+    case '0': zoom = 1; panX = 40; panY = 60; scheduleRender(); break;
+  }
+});
+
+function selectTool(name) {
+  currentTool = name;
+  $$('.tool-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tool === name);
+  });
+  canvasArea.classList.toggle('panning', name === 'pan');
+}
+
+// ---- Canvas Rendering (rAF: only redraw when layout or selection/hover changed) ----
+let rafScheduled = false;
+function scheduleRender() {
+  if (rafScheduled) return;
+  rafScheduled = true;
+  requestAnimationFrame(() => {
+    rafScheduled = false;
+    renderCanvas();
+  });
+}
+
+function resizeCanvas() {
+  const rect = canvasArea.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  scheduleRender();
+}
+
+function renderCanvas() {
+  const w = canvas.width / (window.devicePixelRatio || 1);
+  const h = canvas.height / (window.devicePixelRatio || 1);
+  ctx.clearRect(0, 0, w, h);
+
+  // Draw dot grid
+  drawGrid(w, h);
+
+  if (!layoutData || !layoutData.root) return;
+
+  ctx.save();
+  ctx.translate(panX, panY);
+  ctx.scale(zoom, zoom);
+
+  // Draw artboard background (viewport area)
+  const vw = layoutData.viewport ? layoutData.viewport.w : 960;
+  const vh = layoutData.viewport ? layoutData.viewport.h : 640;
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0,0,0,0.25)';
+  ctx.shadowBlur = 20 * zoom;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 4 * zoom;
+  ctx.fillRect(0, 0, vw, vh);
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+
+  // Artboard label
+  ctx.fillStyle = '#666';
+  ctx.font = `${11}px Inter, sans-serif`;
+  ctx.textBaseline = 'bottom';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${vw} × ${vh}`, 0, -6);
+
+  allNodes = [];
+  drawNode(layoutData.root, 0);
+
+  // Hover highlight
+  if (hoveredNode && hoveredNode !== selectedNode) {
+    drawHighlight(hoveredNode, 'rgba(124, 92, 252, 0.3)', 1);
+  }
+  // Selection highlight
+  if (selectedNode) {
+    drawHighlight(selectedNode, 'rgba(124, 92, 252, 0.6)', 2);
+  }
+
+  ctx.restore();
+
+  updateZoomLabel();
+}
+
+function drawGrid(w, h) {
+  const gridSize = 20 * zoom;
+  const offsetX = panX % gridSize;
+  const offsetY = panY % gridSize;
+
+  ctx.fillStyle = '#2a2a34';
+  for (let x = offsetX; x < w; x += gridSize) {
+    for (let y = offsetY; y < h; y += gridSize) {
+      ctx.beginPath();
+      ctx.arc(x, y, 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+function rgba(c, a) {
+  if (!c) return 'transparent';
+  return `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${a !== undefined ? a : c[3] / 255})`;
+}
+
+function drawNode(node, depth) {
+  const r = node.rect;
+  allNodes.push({ node, depth });
+
+  // Fill
+  if (node.fill) {
+    const radius = node.radius || 0;
+    ctx.fillStyle = rgba(node.fill, node.fill[3] / 255);
+    drawRoundedRect(r.x, r.y, r.w, r.h, radius);
+    ctx.fill();
+  }
+
+  // Stroke
+  if (node.stroke) {
+    const radius = node.radius || 0;
+    ctx.strokeStyle = rgba(node.stroke, node.stroke[3] / 255);
+    ctx.lineWidth = 1 / zoom;
+    drawRoundedRect(r.x, r.y, r.w, r.h, radius);
+    ctx.stroke();
+  }
+
+  // Text
+  if (node.text) {
+    const fs = node.font_size || 16;
+    // Text color: dark on light fills, light on dark fills
+    if (node.fill) {
+      ctx.fillStyle = getContrastColor(node.fill);
+    } else {
+      // No fill — default to dark text (on white artboard)
+      ctx.fillStyle = '#1a1a20';
+    }
+    ctx.font = `${fs}px Inter, -apple-system, sans-serif`;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    const textX = r.x + (node.kind === 'Button' ? r.w / 2 : 8);
+    const textY = r.y + r.h / 2;
+    if (node.kind === 'Button') {
+      ctx.textAlign = 'center';
+    }
+    ctx.fillText(node.text, textX, textY);
+  }
+
+  // Children
+  if (node.children) {
+    for (const child of node.children) {
+      drawNode(child, depth + 1);
+    }
+  }
+}
+
+function getContrastColor(fill) {
+  const lum = (fill[0] * 0.299 + fill[1] * 0.587 + fill[2] * 0.114);
+  return lum > 128 ? '#1a1a20' : '#e2e2e8';
+}
+
+function drawRoundedRect(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawHighlight(node, color, width) {
+  const r = node.rect;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width / zoom;
+  ctx.setLineDash([4 / zoom, 3 / zoom]);
+  drawRoundedRect(r.x, r.y, r.w, r.h, node.radius || 0);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Label
+  const labelText = node.kind + (node.text ? ` "${node.text}"` : '');
+  const labelFS = 10 / zoom;
+  ctx.font = `600 ${labelFS}px Inter, sans-serif`;
+  const lw = ctx.measureText(labelText).width + 8 / zoom;
+  const lh = 16 / zoom;
+  ctx.fillStyle = '#7c5cfc';
+  drawRoundedRect(r.x, r.y - lh - 2 / zoom, lw, lh, 3 / zoom);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  ctx.fillText(labelText, r.x + 4 / zoom, r.y - lh / 2 - 2 / zoom);
+}
+
+// ---- Hit Testing ----
+function hitTest(mx, my) {
+  const cx = (mx - panX) / zoom;
+  const cy = (my - panY) / zoom;
+  // Reverse order — deeper nodes first
+  for (let i = allNodes.length - 1; i >= 0; i--) {
+    const { node } = allNodes[i];
+    const r = node.rect;
+    if (cx >= r.x && cx <= r.x + r.w && cy >= r.y && cy <= r.y + r.h) {
+      return node;
+    }
+  }
+  return null;
+}
+
+// ---- Mouse Events ----
+canvasArea.addEventListener('mousemove', (e) => {
+  const rect = canvasArea.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  // Update cursor position
+  const cx = ((mx - panX) / zoom).toFixed(0);
+  const cy = ((my - panY) / zoom).toFixed(0);
+  $('#cursor-pos').textContent = `${cx}, ${cy}`;
+
+  if (isPanning) {
+    panX += e.clientX - panStartX;
+    panY += e.clientY - panStartY;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+    scheduleRender();
+    return;
+  }
+
+  if (currentTool === 'select') {
+    const node = hitTest(mx, my);
+    if (node !== hoveredNode) {
+      hoveredNode = node;
+      scheduleRender();
+    }
+    canvas.style.cursor = (node && node.onClick) ? 'pointer' : 'default';
+  }
+});
+
+canvasArea.addEventListener('mousedown', (e) => {
+  if (currentTool === 'pan' || e.button === 1 || (e.button === 0 && e.spaceKey)) {
+    isPanning = true;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+    return;
+  }
+
+  if (currentTool === 'select') {
+    const rect = canvasArea.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const node = hitTest(mx, my);
+    selectedNode = node;
+    scheduleRender();
+    updateProperties(node);
+    if (node && node.onClick && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'state_action', expr: node.onClick }));
+    }
+  }
+});
+
+canvasArea.addEventListener('mouseup', () => { isPanning = false; });
+canvasArea.addEventListener('mouseleave', () => { isPanning = false; hoveredNode = null; scheduleRender(); });
+
+// Space + drag to pan
+let spaceDown = false;
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && e.target !== $('#code-editor')) {
+    spaceDown = true;
+    canvasArea.classList.add('panning');
+  }
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') {
+    spaceDown = false;
+    if (currentTool !== 'pan') canvasArea.classList.remove('panning');
+  }
+});
+canvasArea.addEventListener('mousedown', (e) => {
+  if (spaceDown) {
+    isPanning = true;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+  }
+});
+
+// Scroll to zoom
+canvasArea.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = canvasArea.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  const delta = e.deltaY > 0 ? -0.08 : 0.08;
+  const oldZoom = zoom;
+  zoom = Math.max(0.1, Math.min(5, zoom + delta));
+
+  // Zoom toward cursor
+  panX = mx - (mx - panX) * (zoom / oldZoom);
+  panY = my - (my - panY) * (zoom / oldZoom);
+
+  scheduleRender();
+}, { passive: false });
+
+// ---- Zoom controls ----
+$('#zoom-in').addEventListener('click', () => zoomBy(0.15));
+$('#zoom-out').addEventListener('click', () => zoomBy(-0.15));
+
+function zoomBy(delta) {
+  zoom = Math.max(0.1, Math.min(5, zoom + delta));
+  scheduleRender();
+}
+
+function zoomToFit() {
+  if (!layoutData || !layoutData.viewport) return;
+  const vw = layoutData.viewport.w;
+  const vh = layoutData.viewport.h;
+  const cw = canvas.width / (window.devicePixelRatio || 1);
+  const ch = canvas.height / (window.devicePixelRatio || 1);
+  zoom = Math.min((cw - 80) / vw, (ch - 80) / vh, 2);
+  panX = (cw - vw * zoom) / 2;
+  panY = (ch - vh * zoom) / 2;
+  scheduleRender();
+}
+
+function updateZoomLabel() {
+  $('#zoom-level').textContent = Math.round(zoom * 100) + '%';
+}
+
+// ---- Properties Panel ----
+function updateProperties(node) {
+  if (!node) {
+    $('#no-selection').style.display = 'block';
+    $('#selection-props').style.display = 'none';
+    return;
+  }
+  $('#no-selection').style.display = 'none';
+  const el = $('#selection-props');
+  el.style.display = 'block';
+  const r = node.rect;
+  el.innerHTML = `
+    <div class="prop-group">
+      <div class="prop-group-title">Element</div>
+      <div class="prop-row"><span class="prop-label">Kind</span><span class="prop-value">${node.kind}</span></div>
+      ${node.text ? `<div class="prop-row"><span class="prop-label">Text</span><span class="prop-value">${node.text}</span></div>` : ''}
+    </div>
+    <div class="prop-group">
+      <div class="prop-group-title">Layout</div>
+      <div class="prop-row"><span class="prop-label">X</span><span class="prop-value">${r.x.toFixed(1)}</span></div>
+      <div class="prop-row"><span class="prop-label">Y</span><span class="prop-value">${r.y.toFixed(1)}</span></div>
+      <div class="prop-row"><span class="prop-label">Width</span><span class="prop-value">${r.w.toFixed(1)}</span></div>
+      <div class="prop-row"><span class="prop-label">Height</span><span class="prop-value">${r.h.toFixed(1)}</span></div>
+    </div>
+    <div class="prop-group">
+      <div class="prop-group-title">Style</div>
+      ${node.fill ? `<div class="prop-row"><span class="prop-label">Fill</span><span class="prop-value" style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:3px;background:${rgba(node.fill, node.fill[3]/255)};border:1px solid var(--border);flex-shrink:0"></span>rgba(${node.fill.join(', ')})</span></div>` : ''}
+      ${node.stroke ? `<div class="prop-row"><span class="prop-label">Stroke</span><span class="prop-value">rgba(${node.stroke.join(', ')})</span></div>` : ''}
+      <div class="prop-row"><span class="prop-label">Radius</span><span class="prop-value">${node.radius}</span></div>
+      <div class="prop-row"><span class="prop-label">Font Size</span><span class="prop-value">${node.font_size}px</span></div>
+    </div>
+  `;
+}
+
+// ---- Error Handling ----
+function showError(msg) {
+  $('#error-bar').textContent = msg;
+  $('#error-bar').classList.add('visible');
+  $('#status-dot').className = 'dot err';
+  $('#status-text').textContent = 'Error';
+}
+function hideError() {
+  $('#error-bar').classList.remove('visible');
+  $('#status-dot').className = 'dot ok';
+  $('#status-text').textContent = 'Connected';
+}
+
+// ---- Node Count ----
+function updateNodeCount() {
+  if (!layoutData || !layoutData.root) { $('#node-count').textContent = '0 nodes'; return; }
+  let count = 0;
+  function walk(n) { count++; if (n.children) n.children.forEach(walk); }
+  walk(layoutData.root);
+  $('#node-count').textContent = count + ' node' + (count !== 1 ? 's' : '');
+}
+
+function updateScreenSelector(payload) {
+  const sel = $('#screen-select');
+  const screens = payload.screens || [];
+  if (screens.length <= 1) {
+    sel.style.display = 'none';
+    return;
+  }
+  sel.style.display = 'inline-block';
+  const current = payload.screen || (screens[0]);
+  if (sel.options.length !== screens.length || sel.value !== current) {
+    sel.innerHTML = '';
+    screens.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      if (name === current) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+$('#screen-select').addEventListener('change', () => {
+  const name = $('#screen-select').value;
+  fetch('/api/layout?screen=' + encodeURIComponent(name))
+    .then(r => r.json())
+    .then(data => {
+      if (data.type === 'layout') {
+        layoutData = data;
+        scheduleRender();
+        updateNodeCount();
+        setTimeout(zoomToFit, 100);
+      } else if (data.type === 'error') {
+        showError(data.message);
+      }
+    })
+    .catch(err => showError(String(err)));
+});
+
+// ---- State Panel ----
+function updateStatePanel() {
+  const keys = Object.keys(_canvasState);
+  if (keys.length === 0) {
+    $('#no-state').style.display = 'block';
+    $('#state-vars').style.display = 'none';
+    return;
+  }
+  $('#no-state').style.display = 'none';
+  const el = $('#state-vars');
+  el.style.display = 'block';
+  el.innerHTML = keys.map(key => {
+    const val = _canvasState[key];
+    return `<div class="prop-row">
+      <span class="prop-label">${key}</span>
+      <input class="prop-value" data-state-key="${key}" value="${val}"
+             style="cursor:text;outline:none;">
+    </div>`;
+  }).join('');
+  el.querySelectorAll('input[data-state-key]').forEach(input => {
+    input.addEventListener('change', () => handleStateEdit(input));
+  });
+}
+
+function handleStateEdit(input) {
+  const key = input.dataset.stateKey;
+  const rawVal = input.value.trim();
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    const num = Number(rawVal);
+    const expr = isNaN(num) ? `${key} = "${rawVal}"` : `${key} = ${rawVal}`;
+    ws.send(JSON.stringify({ type: 'state_action', expr }));
+  }
+}
+
+// ---- Resize Handle (code panel auto-adjusts with canvas) ----
+const PANEL_MIN = 260;
+const CANVAS_MIN = 280;
+let isResizing = false;
+let panelWidthPx = 420;
+
+function clampPanelWidth() {
+  if (isResizing) return;
+  const main = $('#main').getBoundingClientRect();
+  const maxPanel = Math.max(PANEL_MIN, main.width - CANVAS_MIN);
+  const current = $('#right-panel').getBoundingClientRect().width;
+  panelWidthPx = Math.max(PANEL_MIN, Math.min(maxPanel, current));
+  $('#right-panel').style.width = panelWidthPx + 'px';
+}
+
+$('#resize-handle').addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  isResizing = true;
+  $('#resize-handle').classList.add('dragging');
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  e.preventDefault();
+});
+document.addEventListener('mousemove', (e) => {
+  if (!isResizing) return;
+  const mainRect = $('#main').getBoundingClientRect();
+  const newW = mainRect.right - e.clientX;
+  panelWidthPx = Math.max(PANEL_MIN, Math.min(mainRect.width - CANVAS_MIN, newW));
+  $('#right-panel').style.width = panelWidthPx + 'px';
+  resizeCanvas();
+});
+document.addEventListener('mouseup', () => {
+  if (isResizing) {
+    isResizing = false;
+    $('#resize-handle').classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+});
+$('#resize-handle').addEventListener('dblclick', () => {
+  const main = $('#main').getBoundingClientRect();
+  panelWidthPx = Math.max(PANEL_MIN, Math.min(main.width - CANVAS_MIN, main.width * 0.5));
+  $('#right-panel').style.width = panelWidthPx + 'px';
+  resizeCanvas();
+});
+
+// ---- Init ----
+window.addEventListener('resize', () => {
+  clampPanelWidth();
+  resizeCanvas();
+});
+window.addEventListener('load', () => {
+  panelWidthPx = Math.min(420, Math.max(PANEL_MIN, $('#main').getBoundingClientRect().width * 0.4));
+  $('#right-panel').style.width = panelWidthPx + 'px';
+  resizeCanvas();
+  connectWS();
+  // Load initial data
+  fetch('/api/source').then(r => r.text()).then(code => {
+    sourceCode = code;
+    $('#code-editor').value = code;
+  });
+  fetch('/api/layout').then(r => r.json()).then(data => {
+    if (data.type === 'layout') {
+      layoutData = data;
+      updateScreenSelector(data);
+      scheduleRender();
+      updateNodeCount();
+      setTimeout(zoomToFit, 100);
+    } else if (data.type === 'error') {
+      showError(data.message);
+    }
+  }).catch(() => {});
+});
+</script>
+</body>
+</html>

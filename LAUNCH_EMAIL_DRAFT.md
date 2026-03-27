@@ -11,5 +11,5 @@ Current state: the compiler is written in Rust. There's a VS Code extension with
 Looking for feedback on the language design and compilation model. If you've thought about separating UI description from UI rendering, I'd like to hear your take.
 
 GitHub: https://github.com/voxmastery/newter
-Docs: https://newtlang.dev
+Docs: https://newter.vercel.app
 VS Code Marketplace: search "Newt"

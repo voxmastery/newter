@@ -1,0 +1,25 @@
+state submitted = false;
+state name = "";
+
+screen ContactForm {
+    center(fill: #f9fafb)(
+        card(fill: #ffffff, stroke: #e5e7eb, radius: 16, padding: 32)(
+            column(gap: 20)(
+                text("Contact Us", fontSize: 24, fontWeight: "700")
+                column(gap: 8)(
+                    text("Name", fontSize: 14, fontWeight: "500")
+                    input(stroke: #d1d5db, radius: 8, padding: 12)
+                )
+                column(gap: 8)(
+                    text("Email", fontSize: 14, fontWeight: "500")
+                    input(stroke: #d1d5db, radius: 8, padding: 12)
+                )
+                column(gap: 8)(
+                    text("Message", fontSize: 14, fontWeight: "500")
+                    input(stroke: #d1d5db, radius: 8, padding: 12)
+                )
+                button("Send Message", fill: #2563eb, radius: 8, fontSize: 16)
+            )
+        )
+    )
+}

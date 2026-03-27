@@ -1,0 +1,13 @@
+state count = 0;
+
+screen Counter {
+    column(gap: 24, padding: 48, fill: #f9fafb)(
+        text("Counter", fontSize: 32, fontWeight: "700")
+        text("Current value: {count}", fontSize: 18)
+        row(gap: 12)(
+            button("+ Add", fill: #2563eb, radius: 8, onClick: { count = count + 1 })
+            button("- Remove", fill: #6b7280, radius: 8, onClick: { count = count - 1 })
+            button("Reset", fill: #ef4444, radius: 8, onClick: { count = 0 })
+        )
+    )
+}

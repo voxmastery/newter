@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Newt",
+  "scopeName": "source.newt",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#colors" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "name": "comment.line.newt", "match": "//.*$" },
+        { "name": "comment.block.newt", "begin": "/\\*", "end": "\\*/" }
+      ]
+    },
+    "keywords": {
+      "patterns": [{
+        "name": "keyword.control.newt",
+        "match": "\\b(let|screen|component|header|footer|container|sidebar|row|column|card|box|button|text|input|image|stack|center|spacer)\\b"
+      }]
+    },
+    "strings": {
+      "name": "string.quoted.double.newt",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [{ "name": "constant.character.escape.newt", "match": "\\\\." }]
+    },
+    "numbers": {
+      "name": "constant.numeric.newt",
+      "match": "\\b[0-9]+\\.?[0-9]*\\b"
+    },
+    "colors": {
+      "name": "constant.other.color.newt",
+      "match": "#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?"
+    }
+  }
+}

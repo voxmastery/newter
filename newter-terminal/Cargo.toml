@@ -1,0 +1,11 @@
+[package]
+name = "newter-terminal"
+version = "0.1.0"
+edition = "2021"
+description = "Neo-brutalism native terminal for Newter"
+authors = ["Newter"]
+license = "MIT"
+
+[dependencies]
+crossterm = "0.28"
+ratatui = "0.28"

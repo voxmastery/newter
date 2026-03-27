@@ -1,0 +1,28 @@
+// Hello Newt — design canvas example
+let padding = 24;
+let cardFill = #ffffff;
+let accent = #2563eb;
+
+screen Main {
+  column { gap: 20, padding: padding } {
+    box {
+      fill: cardFill,
+      radius: 12,
+      padding: 24,
+      stroke: #e5e7eb
+    } {
+      text { content: "Newt Canvas", fontSize: 28 }
+    }
+    row { gap: 12 } {
+      box { fill: #f3f4f6, radius: 8, padding: 12 } {
+        text { content: "One", fontSize: 16 }
+      }
+      box { fill: #f3f4f6, radius: 8, padding: 12 } {
+        text { content: "Two", fontSize: 16 }
+      }
+      box { fill: accent, radius: 8, padding: 12 } {
+        text { content: "Three", fontSize: 16 }
+      }
+    }
+  }
+}

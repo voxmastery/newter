@@ -1,0 +1,11 @@
+[package]
+name = "newter-lsp"
+version = "0.1.0"
+edition = "2021"
+description = "LSP server for the Newt UI language"
+
+[dependencies]
+newter-compiler = { path = "../newter-compiler" }
+tower-lsp = "0.20"
+lsp-types = "0.94"
+tokio = { version = "1", features = ["full"] }

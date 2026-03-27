@@ -1,0 +1,41 @@
+// =============================================================================
+// Newt — "English-like" UI example (valid current syntax)
+// Read it as: variables, then "A screen named X contains ..."
+// When run, this compiles and shows on the canvas.
+// =============================================================================
+
+// The variable padding is 24.
+let padding = 24;
+// The variable cardFill is white.
+let cardFill = #ffffff;
+// The variable accent is blue.
+let accent = #2563eb;
+
+// A screen named Main contains:
+screen Main {
+  // a column with gap 20 and padding 24, and inside it:
+  column { gap: 20, padding: padding } {
+    // a card (box) with fill white, radius 12, padding 24, and inside it:
+    box {
+      fill: cardFill,
+      radius: 12,
+      padding: 24,
+      stroke: #e5e7eb
+    } {
+      // text saying "Newt Canvas" with fontSize 28
+      text { content: "Newt Canvas", fontSize: 28 }
+    }
+    // a row with gap 12, and inside it three buttons:
+    row { gap: 12 } {
+      box { fill: #f3f4f6, radius: 8, padding: 12 } {
+        text { content: "One", fontSize: 16 }
+      }
+      box { fill: #f3f4f6, radius: 8, padding: 12 } {
+        text { content: "Two", fontSize: 16 }
+      }
+      box { fill: accent, radius: 8, padding: 12 } {
+        text { content: "Three", fontSize: 16 }
+      }
+    }
+  }
+}

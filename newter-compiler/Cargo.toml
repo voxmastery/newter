@@ -1,0 +1,57 @@
+[package]
+name = "newter-compiler"
+version = "0.1.0"
+edition = "2021"
+description = "A UI language compiler — 58 built-in elements, compiles to canvas, HTML, and JSON"
+authors = ["Ganesh <voxmastery@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/voxmastery/newter"
+homepage = "https://newter.vercel.app"
+readme = "README.md"
+keywords = ["ui", "language", "compiler", "canvas", "html"]
+categories = ["compilers", "gui", "rendering"]
+
+[dependencies]
+# GPU & windowing
+wgpu = "22"
+winit = "0.30"
+raw-window-handle = "0.6"
+
+# Text rendering
+glyphon = "0.6"
+
+# Math
+bytemuck = { version = "1.14", features = ["derive"] }
+
+# File watching for hot-reload
+notify = "6.1"
+notify-debouncer-full = "0.7"
+
+# Error handling
+thiserror = "2.0"
+anyhow = "1.0"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Block on async (for renderer init)
+pollster = "0.3"
+
+# Serialization (layout → JSON for canvas IDE)
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Web server for canvas IDE
+axum = { version = "0.7", features = ["ws"] }
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.5", features = ["cors"] }
+open = "5"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3

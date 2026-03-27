@@ -1,0 +1,42 @@
+let accent = #2563eb;
+let bg = #f9fafb;
+
+component StatCard(label, value, color) {
+    card(fill: #ffffff, stroke: #e5e7eb, radius: 12, padding: 20)(
+        column(gap: 8)(
+            text { content: label, fontSize: 12 }
+            text { content: value, fontSize: 28, fontWeight: "700" }
+        )
+    )
+}
+
+screen Dashboard {
+    column(fill: bg)(
+        header(fill: #ffffff, stroke: #e5e7eb, padding: 16)(
+            row(gap: 12)(
+                text("Dashboard", fontSize: 20, fontWeight: "700")
+                spacer()
+                button("Settings", stroke: #e5e7eb, radius: 8)
+            )
+        )
+        container(padding: 32)(
+            column(gap: 24)(
+                row(gap: 16)(
+                    StatCard("Total Users", "12,405", accent)
+                    StatCard("Revenue", "$48,200", #10b981)
+                    StatCard("Growth", "+12.5%", #f59e0b)
+                    StatCard("Active Now", "1,893", #8b5cf6)
+                )
+                for i in range(4) {
+                    card(fill: #ffffff, stroke: #e5e7eb, radius: 12, padding: 20)(
+                        row(gap: 12)(
+                            text("Project {i}", fontSize: 14, fontWeight: "600")
+                            spacer()
+                            badge { content: "Active", fill: #dcfce7 }
+                        )
+                    )
+                }
+            )
+        )
+    )
+}

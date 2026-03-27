@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-and-release:
+    name: Build (${{ matrix.asset_name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: newter-compiler
+            asset_name: newter-compiler-linux-x86_64
+            lsp_binary: newter-lsp
+            lsp_asset_name: newter-lsp-linux-x86_64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            binary: newter-compiler
+            asset_name: newter-compiler-macos-arm64
+            lsp_binary: newter-lsp
+            lsp_asset_name: newter-lsp-macos-arm64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            binary: newter-compiler
+            asset_name: newter-compiler-macos-x86_64
+            lsp_binary: newter-lsp
+            lsp_asset_name: newter-lsp-macos-x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: newter-compiler.exe
+            asset_name: newter-compiler-windows-x86_64.exe
+            lsp_binary: newter-lsp.exe
+            lsp_asset_name: newter-lsp-windows-x86_64.exe
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-release-
+
+      - name: Build newter-compiler
+        run: cargo build -p newter-compiler --release --target ${{ matrix.target }}
+
+      - name: Build newter-lsp
+        run: cargo build -p newter-lsp --release --target ${{ matrix.target }}
+
+      - name: Rename binaries
+        shell: bash
+        run: |
+          cp target/${{ matrix.target }}/release/${{ matrix.binary }} ${{ matrix.asset_name }}
+          cp target/${{ matrix.target }}/release/${{ matrix.lsp_binary }} ${{ matrix.lsp_asset_name }}
+
+      - name: Create release and upload assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ matrix.asset_name }}
+            ${{ matrix.lsp_asset_name }}

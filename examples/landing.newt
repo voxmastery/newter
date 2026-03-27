@@ -1,0 +1,30 @@
+let brand = #2563eb;
+
+screen Landing {
+    column()(
+        header(fill: brand, padding: 20)(
+            row()(
+                text("Newt UI", fontSize: 20, fontWeight: "700")
+                spacer()
+                button("Get Started", fill: #ffffff, radius: 8)
+            )
+        )
+        container(padding: 80)(
+            center()(
+                column(gap: 24)(
+                    text("Design UIs faster", fontSize: 48, fontWeight: "800")
+                    text("A compact language that compiles to canvas, HTML, or JSON", fontSize: 20)
+                    row(gap: 12)(
+                        button("Try it now", fill: brand, radius: 8, fontSize: 16)
+                        button("View docs", stroke: brand, radius: 8, fontSize: 16)
+                    )
+                )
+            )
+        )
+        footer(fill: #1f2937, padding: 32)(
+            center()(
+                text("Built with Newt", fontSize: 14)
+            )
+        )
+    )
+}
