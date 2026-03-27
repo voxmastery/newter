@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+docs/website/build/
+docs/website/.docusaurus/
+target/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Agent skills (installed via npx skills add, not checked in)
+.agents/
+.claude/skills/
+.commandcode/
+.cursor/
+.kiro/
+.mistral/
+.windsurf/
+.vibe/
+skills-lock.json
+
+# Environment
+.env
+.env.local
+
+# Temporary
+/tmp/
+*.swp
+*.swo

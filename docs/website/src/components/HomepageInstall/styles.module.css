@@ -1,0 +1,122 @@
+.install {
+  padding: var(--space-20) var(--space-6);
+  background: var(--color-bg);
+  position: relative;
+}
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-text);
+  margin: 0 0 var(--space-3);
+  letter-spacing: -0.02em;
+}
+
+.sectionSubtitle {
+  font-size: 16px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-10);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+
+.tab {
+  padding: var(--space-2) var(--space-5);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: background 150ms ease, color 150ms ease;
+  font-family: var(--font-sans);
+}
+
+.tab:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+}
+
+.tabActive {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+.tabActive:hover {
+  background: var(--color-accent-hover);
+  color: #ffffff;
+}
+
+.codeWrapper {
+  position: relative;
+}
+
+.codeBlock {
+  background: #0f111a;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: var(--space-5) var(--space-6);
+  overflow-x: auto;
+}
+
+.codeBlock pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #d8dee9;
+  white-space: pre;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.copyButton {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  padding: var(--space-2);
+  cursor: pointer;
+  color: #d8dee9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease;
+}
+
+.copyButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.copied {
+  color: #10b981;
+}
+
+@media (max-width: 576px) {
+  .install {
+    padding: var(--space-10) var(--space-4);
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .codeBlock pre {
+    font-size: 12px;
+  }
+}

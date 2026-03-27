@@ -1,0 +1,496 @@
+/* ============================================
+   1. FONTS
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ============================================
+   2. CSS CUSTOM PROPERTIES — Light Mode
+   ============================================ */
+:root {
+  /* Spacing (4px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* Colors — Light mode */
+  --color-bg: #ffffff;
+  --color-bg-subtle: #f9fafb;
+  --color-bg-muted: #f3f4f6;
+  --color-text: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+
+  /* Accent — Violet */
+  --color-accent: #7c3aed;
+  --color-accent-hover: #6d28d9;
+  --color-accent-light: #a78bfa;
+  --color-accent-subtle: #ede9fe;
+  --color-accent-muted: rgba(124, 58, 237, 0.08);
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  /* Docusaurus overrides */
+  --ifm-font-family-base: var(--font-sans);
+  --ifm-font-family-monospace: var(--font-mono);
+  --ifm-heading-font-family: var(--font-sans);
+  --ifm-color-primary: #7c3aed;
+  --ifm-color-primary-dark: #6d28d9;
+  --ifm-color-primary-darker: #5b21b6;
+  --ifm-color-primary-darkest: #4c1d95;
+  --ifm-color-primary-light: #8b5cf6;
+  --ifm-color-primary-lighter: #a78bfa;
+  --ifm-color-primary-lightest: #c4b5fd;
+  --ifm-heading-font-weight: 700;
+  --ifm-font-weight-semibold: 600;
+  --ifm-code-font-size: 90%;
+
+  /* Layout */
+  --ifm-navbar-height: 60px;
+  --doc-sidebar-width: 260px !important;
+  --ifm-container-width-xl: 860px;
+
+  /* Code blocks */
+  --code-bg: #0f111a;
+  --code-border: rgba(255, 255, 255, 0.08);
+  --code-radius: 8px;
+
+  /* Callouts */
+  --callout-tip-border: #10b981;
+  --callout-tip-bg: rgba(16, 185, 129, 0.08);
+  --callout-info-border: #3b82f6;
+  --callout-info-bg: rgba(59, 130, 246, 0.08);
+  --callout-warning-border: #f59e0b;
+  --callout-warning-bg: rgba(245, 158, 11, 0.08);
+  --callout-danger-border: #ef4444;
+  --callout-danger-bg: rgba(239, 68, 68, 0.08);
+}
+
+/* ============================================
+   3. DARK MODE
+   ============================================ */
+[data-theme='dark'] {
+  --color-bg: #0a0a0b;
+  --color-bg-subtle: #111113;
+  --color-bg-muted: #1a1a1d;
+  --color-text: #f9fafb;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #a1a1aa;
+  --color-border: #27272a;
+  --color-border-strong: #3f3f46;
+  --color-accent: #8b5cf6;
+  --color-accent-hover: #a78bfa;
+  --color-accent-light: #c4b5fd;
+  --color-accent-subtle: #1e1033;
+  --color-accent-muted: rgba(139, 92, 246, 0.1);
+
+  --ifm-background-color: var(--color-bg);
+  --ifm-background-surface-color: var(--color-bg-subtle);
+  --ifm-color-primary: #8b5cf6;
+  --ifm-color-primary-dark: #7c3aed;
+  --ifm-color-primary-darker: #6d28d9;
+  --ifm-color-primary-darkest: #5b21b6;
+  --ifm-color-primary-light: #a78bfa;
+  --ifm-color-primary-lighter: #c4b5fd;
+  --ifm-color-primary-lightest: #ddd6fe;
+}
+
+/* ============================================
+   4. TYPOGRAPHY
+   ============================================ */
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1 { font-size: 36px; line-height: 1.2; font-weight: 700; }
+h2 { font-size: 24px; line-height: 1.3; font-weight: 700; }
+h3 { font-size: 20px; line-height: 1.4; font-weight: 600; }
+h4 { font-size: 16px; line-height: 1.5; font-weight: 600; }
+
+.markdown p {
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   5. NAVBAR
+   ============================================ */
+.navbar {
+  height: var(--ifm-navbar-height);
+  background: var(--color-bg);
+  border-bottom: 1px solid transparent;
+  transition: border-color 150ms ease, backdrop-filter 150ms ease;
+  box-shadow: none;
+  padding: 0 var(--space-6);
+}
+
+.navbar--fixed-top {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.navbar-sidebar__backdrop {
+  backdrop-filter: blur(4px);
+}
+
+.navbar__title {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--color-accent);
+}
+
+.navbar__link {
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 150ms ease;
+}
+
+.header-github-link::before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  display: flex;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12' fill='%23111827'/%3E%3C/svg%3E") no-repeat;
+  background-size: contain;
+}
+
+[data-theme='dark'] .header-github-link::before {
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12' fill='%23f9fafb'/%3E%3C/svg%3E") no-repeat;
+  background-size: contain;
+}
+
+/* ============================================
+   6. SIDEBAR
+   ============================================ */
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--color-border) !important;
+}
+
+.menu__link {
+  font-size: 14px;
+  font-weight: 400;
+  padding: 6px var(--space-3);
+  border-radius: 6px;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.menu__link:hover {
+  background: var(--color-bg-muted);
+}
+
+.menu__link--active {
+  color: var(--color-accent) !important;
+  font-weight: 500;
+  background: var(--color-accent-muted);
+  border-left: 3px solid var(--color-accent);
+  padding-left: calc(var(--space-3) - 3px);
+}
+
+.menu__list-item-collapsible .menu__link {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+/* ============================================
+   7. CODE BLOCKS
+   ============================================ */
+pre, code {
+  font-family: var(--font-mono);
+}
+
+.prism-code {
+  background: var(--code-bg) !important;
+  border: 1px solid var(--code-border);
+  border-radius: var(--code-radius);
+  padding: var(--space-5) var(--space-6) !important;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+div[class*='codeBlockContainer'] {
+  border-radius: var(--code-radius);
+  overflow: hidden;
+  box-shadow: none;
+  margin-bottom: var(--space-6);
+}
+
+div[class*='codeBlockTitle'] {
+  background: #0d0f17 !important;
+  border-bottom: 1px solid var(--code-border);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: var(--space-2) var(--space-5);
+}
+
+/* Copy button */
+button[class*='copyButton'] {
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+div[class*='codeBlockContainer']:hover button[class*='copyButton'] {
+  opacity: 0.7;
+}
+
+button[class*='copyButton']:hover {
+  opacity: 1 !important;
+}
+
+/* Inline code */
+code:not(pre code) {
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.875em;
+}
+
+/* ============================================
+   8. ADMONITIONS / CALLOUTS
+   ============================================ */
+.alert {
+  border-radius: 0 8px 8px 0 !important;
+  border: none !important;
+  border-left: 3px solid !important;
+  padding: var(--space-4) var(--space-5) !important;
+}
+
+.alert--success {
+  border-left-color: var(--callout-tip-border) !important;
+  background: var(--callout-tip-bg) !important;
+}
+
+.alert--info {
+  border-left-color: var(--callout-info-border) !important;
+  background: var(--callout-info-bg) !important;
+}
+
+.alert--warning {
+  border-left-color: var(--callout-warning-border) !important;
+  background: var(--callout-warning-bg) !important;
+}
+
+.alert--danger {
+  border-left-color: var(--callout-danger-border) !important;
+  background: var(--callout-danger-bg) !important;
+}
+
+/* ============================================
+   9. CONTENT AREA
+   ============================================ */
+.theme-doc-markdown {
+  max-width: 860px;
+}
+
+article {
+  padding: var(--space-10) 0;
+}
+
+/* Tables */
+table {
+  font-size: 14px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  background: var(--color-bg-subtle);
+  font-weight: 600;
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 2px solid var(--color-border);
+}
+
+td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ============================================
+   10. FOOTER
+   ============================================ */
+.footer {
+  background: var(--color-bg) !important;
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-6) var(--space-8) !important;
+}
+
+.footer__copyright {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* ============================================
+   11. NEWT SYNTAX HIGHLIGHTING TOKENS
+   ============================================ */
+.token.comment { color: #636f88 !important; font-style: italic; }
+.token.string { color: #a3be8c !important; }
+.token.interpolation { color: #88c0d0 !important; }
+.token.number { color: #b48ead !important; }
+.token.boolean { color: #d08770 !important; }
+.token.keyword { color: #81a1c1 !important; }
+.token.tag { color: #8fbcbb !important; }
+.token.attr-name { color: #88c0d0 !important; }
+.token.constant { color: #d08770 !important; }
+.token.operator { color: #81a1c1 !important; }
+.token.punctuation { color: #d8dee9 !important; }
+
+/* ============================================
+   12. RESPONSIVE
+   ============================================ */
+@media (max-width: 996px) {
+  .theme-doc-sidebar-container {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  h1 { font-size: 28px; }
+  h2 { font-size: 22px; }
+  article { padding: var(--space-6) 0; }
+}
+
+/* ============================================
+   13. FOCUS & ACCESSIBILITY
+   ============================================ */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip to content */
+a[href="#main-content"]:focus {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 999;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-accent);
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* ============================================
+   14. SCROLL ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ============================================
+   15. NAVBAR ENHANCEMENTS
+   ============================================ */
+.navbar--fixed-top[class*='navbarHidden'] {
+  transform: translateY(-100%);
+  transition: transform 300ms ease;
+}
+
+html[data-has-scrolled='true'] .navbar {
+  border-bottom-color: var(--color-border);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+html[data-has-scrolled='true'][data-theme='dark'] .navbar {
+  background: rgba(10, 10, 11, 0.85);
+}
+
+/* ============================================
+   16. CARD & INTERACTIVE ENHANCEMENTS
+   ============================================ */
+.card,
+div[class*='card'] {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+
+/* ============================================
+   17. TABLE ENHANCEMENTS
+   ============================================ */
+tr {
+  transition: background 150ms ease;
+}
+
+tr:hover {
+  background: var(--color-bg-subtle);
+}
+
+/* ============================================
+   18. LINK STYLES
+   ============================================ */
+a {
+  transition: color 150ms ease;
+}
+
+.menu__link {
+  text-decoration: none !important;
+}
+
+/* ============================================
+   19. SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* ============================================
+   20. SELECTION
+   ============================================ */
+::selection {
+  background: rgba(124, 58, 237, 0.2);
+  color: inherit;
+}
+
+[data-theme='dark'] ::selection {
+  background: rgba(139, 92, 246, 0.3);
+}
