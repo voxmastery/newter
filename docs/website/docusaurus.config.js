@@ -14,7 +14,7 @@ const config = {
     mermaid: true,
   },
 
-  url: 'https://newtlang.dev',
+  url: 'https://newter.vercel.app',
   baseUrl: '/',
 
   organizationName: 'voxmastery',
@@ -67,7 +67,7 @@ const config = {
       tagName: 'meta',
       attributes: {
         property: 'og:image',
-        content: 'https://newtlang.dev/img/og-image.svg',
+        content: 'https://newter.vercel.app/img/og-image.svg',
       },
     },
     {
@@ -81,7 +81,7 @@ const config = {
       tagName: 'meta',
       attributes: {
         name: 'twitter:image',
-        content: 'https://newtlang.dev/img/og-image.svg',
+        content: 'https://newter.vercel.app/img/og-image.svg',
       },
     },
     {
