@@ -1,16 +1,21 @@
-# Show HN: Newt — A UI language that compiles to canvas, HTML, and JSON
+# Show HN: Newt – A UI language that compiles to canvas, HTML, React, and JSON
 
-Newt is a declarative UI language. You describe interfaces in `.newt` files using 73 built-in elements, and the compiler outputs GPU-accelerated canvas, static HTML, or structured JSON from the same source.
+8 lines of Newt replaces 20+ lines of React JSX — and compiles to four targets from one source.
 
-I built it because describing a UI shouldn't require picking a framework first. Every project starts with the same question — React? Svelte? Something else? — before you've written a single layout. Newt skips that. You declare what you want, then choose the output target at compile time.
+I built Newt because describing a UI shouldn't require picking a framework first. You write what you want to see, then choose the output: GPU canvas, static HTML, a React component, or a JSON layout tree.
 
-What makes it different: one source file, three compilation targets. The canvas backend renders via GPU for performance-critical interfaces. The HTML backend produces static markup with no runtime. The JSON backend gives you a serializable UI tree for tooling, server-driven UI, or further transformation.
+```
+newter-compiler build app.newt --html     # standalone HTML
+newter-compiler build app.newt --react    # React component with useState
+newter-compiler build app.newt --json     # layout tree for server-driven UI
+newter-compiler run app.newt              # GPU canvas window
+```
 
-Current state: the compiler is written in Rust. There's a VS Code extension with syntax highlighting and diagnostics, and a Canvas IDE with hot reload for interactive development. It's early but functional.
+The compiler is written in Rust. 73 built-in elements, reactive state, components, themes, string interpolation, and imports. There's a VS Code extension with full LSP support, and a Canvas IDE with hot reload.
 
-Looking for feedback on the language design and compilation model. If you've thought about separating UI description from UI rendering, I'd like to hear your take.
+It's alpha (v0.1) — functional but evolving. Looking for feedback on the language design and the multi-target compilation model.
 
 GitHub: https://github.com/voxmastery/newter
 Docs: https://newter.vercel.app
 Discord: https://discord.gg/s5ZjeNN8H
-VS Code Marketplace: search "Newt"
+LLM context doc: NEWT_FOR_LLMS.md (so Claude/GPT can write Newt code)
