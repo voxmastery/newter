@@ -654,7 +654,7 @@ impl<'a> Parser<'a> {
                 });
                 while self.at(TokenKind::Comma) {
                     self.advance();
-                    props.push(self.parse_prop()?);
+                    self.parse_prop_or_semantic_tokens(&mut props)?;
                 }
                 self.expect(TokenKind::RightParen)?;
             } else if matches!(self.current().kind, TokenKind::InterpolatedString(_))
@@ -673,12 +673,12 @@ impl<'a> Parser<'a> {
                 });
                 while self.at(TokenKind::Comma) {
                     self.advance();
-                    props.push(self.parse_prop()?);
+                    self.parse_prop_or_semantic_tokens(&mut props)?;
                 }
                 self.expect(TokenKind::RightParen)?;
-            } else if self.at_ident_then_colon() || self.is_prop_keyword() {
+            } else if self.at_ident_then_colon() || self.is_prop_keyword() || self.at_semantic_token() {
                 while !self.at(TokenKind::RightParen) && !self.at(TokenKind::Eof) {
-                    props.push(self.parse_prop()?);
+                    self.parse_prop_or_semantic_tokens(&mut props)?;
                     if self.at(TokenKind::Comma) {
                         self.advance();
                     }
@@ -712,8 +712,15 @@ impl<'a> Parser<'a> {
             self.advance();
             let mut in_first_brace = true;
             while !self.at(TokenKind::RightBrace) && !self.at(TokenKind::Eof) {
-                if in_first_brace && (self.at_ident() || self.is_prop_keyword()) {
-                    props.push(self.parse_prop()?);
+                if in_first_brace && (self.at_semantic_token() || self.at_ident_then_colon() || self.is_prop_keyword()) {
+                    self.parse_prop_or_semantic_tokens(&mut props)?;
+                    if self.at(TokenKind::Comma) {
+                        self.advance();
+                    }
+                } else if in_first_brace && self.at_ident() && !self.at_ident_then_colon() {
+                    // Bare identifier that's not a semantic token — treat as child expression
+                    in_first_brace = false;
+                    children.push(self.parse_expr()?);
                     if self.at(TokenKind::Comma) {
                         self.advance();
                     }
@@ -789,6 +796,35 @@ impl<'a> Parser<'a> {
                 | TokenKind::FontWeight
                 | TokenKind::Shadow
         )
+    }
+
+    /// Check if the current token is an identifier matching a semantic style token.
+    fn at_semantic_token(&self) -> bool {
+        if let TokenKind::Ident(ref s) = self.current().kind {
+            semantic_token_props(s).is_some()
+        } else {
+            false
+        }
+    }
+
+    /// Parse a prop, or if the current token is a semantic style token (an identifier
+    /// not followed by a colon), expand it into multiple props.
+    fn parse_prop_or_semantic_tokens(&mut self, out: &mut Vec<Prop>) -> Result<(), NewtError> {
+        // Check for semantic token: ident NOT followed by colon
+        if let TokenKind::Ident(ref s) = self.current().kind {
+            if !self.at_ident_then_colon() {
+                if let Some(expanded) = semantic_token_props(s) {
+                    let span = self.current().span;
+                    self.advance();
+                    for (name, value) in expanded {
+                        out.push(Prop { name, value, span });
+                    }
+                    return Ok(());
+                }
+            }
+        }
+        out.push(self.parse_prop()?);
+        Ok(())
     }
 
     fn parse_prop(&mut self) -> Result<Prop, NewtError> {
@@ -928,4 +964,93 @@ fn closest_top_level_keyword(ident: &str) -> Option<String> {
         .min_by_key(|kw| levenshtein(&ident_lower, kw))
         .filter(|kw| levenshtein(&ident_lower, kw) <= 2)
         .map(|s| (*s).to_string())
+}
+
+/// Expand a semantic style token identifier into a list of (PropName, PropValue) pairs.
+/// Returns `None` if the identifier is not a recognized semantic token.
+fn semantic_token_props(name: &str) -> Option<Vec<(PropName, PropValue)>> {
+    match name {
+        // ── Color presets ──────────────────────────────────────────────
+        "primary" => Some(vec![
+            (PropName::Fill, PropValue::Color { r: 124, g: 58, b: 237, a: 255 }),
+            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+        ]),
+        "secondary" => Some(vec![
+            (PropName::Fill, PropValue::Color { r: 107, g: 114, b: 128, a: 255 }),
+            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+        ]),
+        "danger" => Some(vec![
+            (PropName::Fill, PropValue::Color { r: 239, g: 68, b: 68, a: 255 }),
+            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+        ]),
+        "success" => Some(vec![
+            (PropName::Fill, PropValue::Color { r: 16, g: 185, b: 129, a: 255 }),
+            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+        ]),
+        "warning" => Some(vec![
+            (PropName::Fill, PropValue::Color { r: 245, g: 158, b: 11, a: 255 }),
+            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+        ]),
+        "muted" => Some(vec![
+            (PropName::Fill, PropValue::Color { r: 243, g: 244, b: 246, a: 255 }),
+            (PropName::Ident("textColor".into()), PropValue::Color { r: 107, g: 114, b: 128, a: 255 }),
+        ]),
+        "ghost" => Some(vec![
+            (PropName::Fill, PropValue::Color { r: 0, g: 0, b: 0, a: 0 }),
+            (PropName::Stroke, PropValue::Color { r: 229, g: 231, b: 235, a: 255 }),
+        ]),
+
+        // ── Typography presets ─────────────────────────────────────────
+        "bold" => Some(vec![
+            (PropName::FontWeight, PropValue::String("700".into())),
+        ]),
+        "semibold" => Some(vec![
+            (PropName::FontWeight, PropValue::String("600".into())),
+        ]),
+        "heading" => Some(vec![
+            (PropName::FontSize, PropValue::Number(24.0)),
+            (PropName::FontWeight, PropValue::String("700".into())),
+        ]),
+        "subheading" => Some(vec![
+            (PropName::FontSize, PropValue::Number(18.0)),
+            (PropName::FontWeight, PropValue::String("600".into())),
+        ]),
+        "caption" => Some(vec![
+            (PropName::FontSize, PropValue::Number(12.0)),
+        ]),
+        "small" => Some(vec![
+            (PropName::FontSize, PropValue::Number(14.0)),
+        ]),
+
+        // ── Size presets ───────────────────────────────────────────────
+        "compact" => Some(vec![
+            (PropName::Padding, PropValue::Number(8.0)),
+            (PropName::Radius, PropValue::Number(4.0)),
+        ]),
+        "comfortable" => Some(vec![
+            (PropName::Padding, PropValue::Number(16.0)),
+            (PropName::Radius, PropValue::Number(8.0)),
+        ]),
+        "spacious" => Some(vec![
+            (PropName::Padding, PropValue::Number(24.0)),
+            (PropName::Radius, PropValue::Number(12.0)),
+        ]),
+        "rounded" => Some(vec![
+            (PropName::Radius, PropValue::Number(999.0)),
+        ]),
+        "pill" => Some(vec![
+            (PropName::Radius, PropValue::Number(999.0)),
+            (PropName::Padding, PropValue::Number(8.0)),
+        ]),
+
+        // ── Shadow presets ─────────────────────────────────────────────
+        "elevated" => Some(vec![
+            (PropName::Shadow, PropValue::Number(8.0)),
+        ]),
+        "floating" => Some(vec![
+            (PropName::Shadow, PropValue::Number(16.0)),
+        ]),
+
+        _ => None,
+    }
 }
