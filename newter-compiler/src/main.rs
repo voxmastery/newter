@@ -9,8 +9,9 @@
 
 use clap::Parser;
 use newter_compiler::{
-    compile, format_error, has_state_vars, layout_to_html, layout_to_reactive_html,
-    theme_css_vars, Source, DEFAULT_SERVE_PORT, DEFAULT_VIEWPORT_H, DEFAULT_VIEWPORT_W,
+    compile, format_error, has_state_vars, layout_to_html, layout_to_react,
+    layout_to_reactive_html, theme_css_vars, Source, DEFAULT_SERVE_PORT, DEFAULT_VIEWPORT_H,
+    DEFAULT_VIEWPORT_W,
 };
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -47,15 +48,17 @@ fn main() -> ExitCode {
         Some(Command::Build {
             file,
             html,
+            json,
+            react,
             output,
             screen,
         }) => {
             let path = file.unwrap_or_else(|| {
                 eprintln!("error: build requires <file>");
-                eprintln!("usage: newter-compiler build <file.newt> [--html] [-o OUT] [--screen NAME]");
+                eprintln!("usage: newter-compiler build <file.newt> [--html|--json|--react] [-o OUT] [--screen NAME]");
                 std::process::exit(1);
             });
-            run_build(path, html, output, screen)
+            run_build(path, html, json, react, output, screen)
         }
         Some(Command::Check { file }) => {
             let path = file.unwrap_or_else(|| {
@@ -68,6 +71,7 @@ fn main() -> ExitCode {
         Some(Command::Watch {
             file,
             html,
+            json,
             output,
             screen,
         }) => {
@@ -75,7 +79,7 @@ fn main() -> ExitCode {
                 eprintln!("error: watch requires <file>");
                 std::process::exit(1);
             });
-            run_watch(path, html, output, screen)
+            run_watch(path, html, json, output, screen)
         }
     }
 }
@@ -105,6 +109,8 @@ fn run_check(path: PathBuf) -> ExitCode {
 fn run_build(
     path: PathBuf,
     html: bool,
+    json: bool,
+    react: bool,
     output: Option<PathBuf>,
     screen: Option<String>,
 ) -> ExitCode {
@@ -123,10 +129,43 @@ fn run_build(
             return ExitCode::from(1);
         }
     };
-    if !html {
-        eprintln!("build: use --html to output HTML (e.g. newter-compiler build --html out.html file.newt)");
+
+    // Default to HTML when no flag is specified
+    let effective_html = html || (!json && !react);
+
+    if json {
+        let out_path = output.unwrap_or_else(|| PathBuf::from("out.json"));
+        let json_out = match serde_json::to_string_pretty(&layout) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("error: JSON serialization failed: {}", e);
+                return ExitCode::from(1);
+            }
+        };
+        if let Err(e) = std::fs::write(&out_path, json_out) {
+            eprintln!("error: write {}: {}", out_path.display(), e);
+            return ExitCode::from(1);
+        }
+        println!("Wrote {}", out_path.display());
         return ExitCode::SUCCESS;
     }
+
+    if react {
+        let out_path = output.unwrap_or_else(|| PathBuf::from("out.jsx"));
+        let react_out = newter_compiler::layout_to_react(&program, &layout);
+        if let Err(e) = std::fs::write(&out_path, react_out) {
+            eprintln!("error: write {}: {}", out_path.display(), e);
+            return ExitCode::from(1);
+        }
+        println!("Wrote {}", out_path.display());
+        return ExitCode::SUCCESS;
+    }
+
+    if !effective_html {
+        eprintln!("build: use --html, --json, or --react to select output format");
+        return ExitCode::SUCCESS;
+    }
+
     let out_path = output.unwrap_or_else(|| PathBuf::from("out.html"));
     let vars = theme_css_vars(&program);
     let vars_ref = if vars.is_empty() {
@@ -161,6 +200,7 @@ fn run_build(
 fn run_watch(
     path: PathBuf,
     html: bool,
+    json: bool,
     output: Option<PathBuf>,
     screen: Option<String>,
 ) -> ExitCode {
@@ -185,7 +225,7 @@ fn run_watch(
     println!("Watching {} (Ctrl+C to stop)", path.display());
     loop {
         if rx.recv().is_ok() {
-            if run_build(path.clone(), html, output.clone(), screen.clone()) == ExitCode::SUCCESS {
+            if run_build(path.clone(), html, json, false, output.clone(), screen.clone()) == ExitCode::SUCCESS {
                 println!("Build ok");
             }
         }
@@ -260,11 +300,15 @@ enum Command {
     Check {
         file: Option<PathBuf>,
     },
-    /// Build to HTML
+    /// Build to HTML, JSON, or React
     Build {
         file: Option<PathBuf>,
         #[arg(long)]
         html: bool,
+        #[arg(long)]
+        json: bool,
+        #[arg(long)]
+        react: bool,
         #[arg(short, long)]
         output: Option<PathBuf>,
         #[arg(long)]
@@ -285,6 +329,8 @@ enum Command {
         file: Option<PathBuf>,
         #[arg(long)]
         html: bool,
+        #[arg(long)]
+        json: bool,
         #[arg(short, long)]
         output: Option<PathBuf>,
         #[arg(long)]
