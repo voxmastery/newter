@@ -2,6 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/newter-compiler.svg)](https://crates.io/crates/newter-compiler)
 [![CI](https://github.com/voxmastery/newter/actions/workflows/ci.yml/badge.svg)](https://github.com/voxmastery/newter/actions/workflows/ci.yml)
+[![Discord](https://img.shields.io/badge/Discord-Join-7c3aed?logo=discord&logoColor=white)](https://discord.gg/s5ZjeNN8H)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **A UI language that compiles to canvas, HTML, and JSON.**
@@ -105,6 +106,11 @@ Full docs at **[newter.vercel.app](https://newter.vercel.app)**
 - [Language Reference](https://newter.vercel.app/docs/language) — elements, props, components, state, themes
 - [Compiler Guide](https://newter.vercel.app/docs/compiler) — pipeline, CLI, HTML export, Canvas IDE
 - [Examples](https://newter.vercel.app/docs/examples) — counter, dashboard, form, landing page
+
+## Community
+
+- [Discord](https://discord.gg/s5ZjeNN8H) — questions, feedback, showcase
+- [GitHub Issues](https://github.com/voxmastery/newter/issues) — bug reports and feature requests
 
 ## Contributing
 

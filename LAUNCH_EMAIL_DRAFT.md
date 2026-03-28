@@ -12,4 +12,5 @@ Looking for feedback on the language design and compilation model. If you've tho
 
 GitHub: https://github.com/voxmastery/newter
 Docs: https://newter.vercel.app
+Discord: https://discord.gg/s5ZjeNN8H
 VS Code Marketplace: search "Newt"
