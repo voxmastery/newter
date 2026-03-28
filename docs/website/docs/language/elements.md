@@ -12,17 +12,17 @@ Newt ships with 73 built-in elements organized into six categories. Every elemen
 ```mermaid
 flowchart TD
     A["73 Built-in Elements"] --> B["Sections (5)"]
-    A --> C["Layout (8)"]
+    A --> C["Layout (10)"]
     A --> D["Navigation (11)"]
-    A --> E["Input (15)"]
-    A --> F["Feedback (10)"]
-    A --> G["Display (9)"]
+    A --> E["Input (21)"]
+    A --> F["Feedback (11)"]
+    A --> G["Display (15)"]
     B --> B1["header, footer, container, sidebar, section"]
-    C --> C1["row, column, stack, center, box, widget, card, grid"]
-    D --> D1["accordion, bento, breadcrumb, hamburger, kebab, ..."]
-    E --> E1["button, input, password, checkbox, dropdown, ..."]
-    F --> F1["modal, toast, alert, tooltip, loader, ..."]
-    G --> G1["text, icon, tag, chart, image, spacer, ..."]
+    C --> C1["row, column, stack, center, box, widget, card, grid, separator, splitter"]
+    D --> D1["accordion, bento, breadcrumb, tabs, nav, commandPalette, ..."]
+    E --> E1["button, input, textarea, select, checkbox, dropdown, rating, colorPicker, fileUpload, ..."]
+    F --> F1["modal, toast, alert, tooltip, loader, skeleton, drawer, popover, ..."]
+    G --> G1["text, icon, tag, chart, image, avatar, table, timeline, treeView, ..."]
 ```
 
 ## Sections
@@ -231,6 +231,80 @@ screen DisplayDemo {
         image(src: "https://example.com/hero.png", radius: 8)
         spacer()
         text("End of page", fontSize: 12)
+    )
+}
+```
+
+## Data & Advanced Input
+
+Elements for structured data display and rich user input.
+
+| Element          | Purpose                                          |
+|------------------|--------------------------------------------------|
+| `table`          | Structured data display with rows and columns    |
+| `avatar`         | Circular user photo or initials fallback         |
+| `textarea`       | Multi-line text input                            |
+| `select`         | Single-value picker dropdown                     |
+| `rating`         | Interactive star rating input (1-5 scale)        |
+| `fileUpload`     | Drag-and-drop file upload zone                   |
+| `colorPicker`    | Visual color selection with hex input            |
+
+```newt
+screen DataDemo {
+    column(gap: 16, padding: 24)(
+        table(stroke: #e5e7eb, radius: 8, padding: 16)(
+            text("Name")
+            text("Role")
+            text("Status")
+        )
+        row(gap: 12)(
+            avatar(fill: #7c3aed, radius: 999)
+            avatar(fill: #2563eb, radius: 999)
+            avatar(fill: #10b981, radius: 999)
+        )
+        textarea(stroke: #d1d5db, radius: 8, padding: 12, placeholder: "Write a message...")
+        rating(fill: #f59e0b)
+    )
+}
+```
+
+## Overlay & Layout
+
+Elements for slide-out panels, floating content, and advanced layout.
+
+| Element          | Purpose                                          |
+|------------------|--------------------------------------------------|
+| `drawer`         | Slide-out panel from any screen edge             |
+| `popover`        | Floating content panel anchored to a trigger     |
+| `separator`      | Horizontal or vertical divider line              |
+| `splitter`       | Resizable split pane divider                     |
+| `skeleton`       | Animated placeholder shimmer while loading       |
+| `timeline`       | Vertical sequence of events with timestamps      |
+| `treeView`       | Hierarchical expandable/collapsible node list    |
+| `commandPalette` | Searchable command menu (Cmd+K pattern)          |
+
+```newt
+screen OverlayDemo {
+    column(gap: 16, padding: 24)(
+        splitter()(
+            box(fill: #f9fafb, padding: 16)(
+                treeView()(
+                    text("src/")
+                    text("  main.rs")
+                    text("  lib.rs")
+                )
+            )
+            box(fill: #ffffff, padding: 16)(
+                text("Editor panel", fontSize: 16)
+            )
+        )
+        separator()
+        timeline()(
+            text("Project created")
+            text("First commit")
+            text("v0.1 released")
+        )
+        skeleton(fill: #e5e7eb, radius: 8, height: 48)
     )
 }
 ```

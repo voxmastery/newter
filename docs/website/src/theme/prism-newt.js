@@ -42,7 +42,7 @@
     'boolean': /\b(?:true|false)\b/,
     'keyword': /\b(?:let|state|screen|component|theme|use|import|if|else|for|in)\b/,
     'tag': {
-      pattern: /\b(?:header|footer|container|sidebar|section|row|column|stack|center|box|widget|card|grid|accordion|bento|breadcrumb|hamburger|kebab|meatballs|doner|tabs|pagination|linkList|nav|button|input|password|search|checkbox|radio|dropdown|combobox|multiselect|datePicker|picker|slider|stepper|toggle|form|modal|confirmDialog|toast|notification|alert|messageBox|tooltip|loader|progressBar|badge|text|icon|tag|comment|feed|carousel|chart|image|spacer)\b/,
+      pattern: /\b(?:header|footer|container|sidebar|section|row|column|stack|center|box|widget|card|grid|accordion|bento|breadcrumb|hamburger|kebab|meatballs|doner|tabs|pagination|linkList|nav|button|input|password|search|checkbox|radio|dropdown|combobox|multiselect|datePicker|picker|slider|stepper|toggle|form|modal|confirmDialog|toast|notification|alert|messageBox|tooltip|loader|progressBar|badge|text|icon|tag|comment|feed|carousel|chart|image|spacer|table|avatar|skeleton|drawer|select|textarea|popover|separator|timeline|rating|fileUpload|colorPicker|treeView|commandPalette|splitter)\b/,
     },
     'attr-name': {
       pattern: /\b(?:fill|stroke|radius|padding|gap|fontSize|fontWeight|width|height|minWidth|maxWidth|minHeight|maxHeight|grow|shrink|align|justify|direction|shadow|transition|role|ariaLabel|focusOrder|onClick|href|src|content|columns|rows|aspectRatio|name|placeholder|strokeWidth)\b(?=\s*:)/,
