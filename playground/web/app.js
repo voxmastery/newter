@@ -10,7 +10,7 @@
 
   const EXAMPLES = {
     counter: [
-      'state count = 0',
+      'state count = 0;',
       '',
       'screen Counter {',
       '    column(gap: 24, padding: 48, fill: #f9fafb)(',
@@ -24,8 +24,8 @@
     ].join('\n'),
 
     dashboard: [
-      'state activeTab = "overview"',
-      'state notifications = 3',
+      'state activeTab = "overview";',
+      'state notifications = 3;',
       '',
       'component StatCard(label, value, color) {',
       '    column(padding: 20, radius: 12, fill: #ffffff, shadow: "sm")(',
@@ -53,11 +53,11 @@
     ].join('\n'),
 
     form: [
-      'state name = ""',
-      'state email = ""',
-      'state role = "developer"',
-      'state agreed = false',
-      'state submitted = false',
+      'state name = "";',
+      'state email = "";',
+      'state role = "developer";',
+      'state agreed = false;',
+      'state submitted = false;',
       '',
       'screen SignupForm {',
       '    column(gap: 20, padding: 48, maxWidth: 420, fill: #ffffff, radius: 16, shadow: "md")(',
@@ -108,11 +108,12 @@
         }
         return { ok: true, output: output };
       } catch (e) {
+        // Show compile errors from WASM
         return { ok: false, output: String(e) };
       }
     }
 
-    // Fallback to placeholder if WASM not loaded yet
+    // Fallback to placeholder if WASM not loaded yet (loading...)
     if (target === 'html') {
       return { ok: true, output: buildPlaceholderHTML(source) };
     }
@@ -321,16 +322,21 @@
 
     if (target === 'html') {
       htmlFrame.classList.remove('hidden');
-      var doc = htmlFrame.contentDocument || htmlFrame.contentWindow.document;
-      doc.open();
-      doc.write(result.output);
-      doc.close();
+      if (!result.ok) {
+        htmlFrame.srcdoc = '<html><body style="font-family:monospace;color:#ef4444;padding:16px;background:#0f111a;"><pre>' + result.output + '</pre></body></html>';
+      } else {
+        htmlFrame.srcdoc = result.output;
+      }
     } else if (target === 'react') {
       reactPre.classList.remove('hidden');
-      reactPre.querySelector('code').textContent = result.output;
+      var reactCode = reactPre.querySelector('code');
+      reactCode.textContent = result.ok ? result.output : 'Error: ' + result.output;
+      reactCode.style.color = result.ok ? '' : '#ef4444';
     } else if (target === 'json') {
       jsonPre.classList.remove('hidden');
-      jsonPre.querySelector('code').textContent = result.output;
+      var jsonCode = jsonPre.querySelector('code');
+      jsonCode.textContent = result.ok ? result.output : 'Error: ' + result.output;
+      jsonCode.style.color = result.ok ? '' : '#ef4444';
     }
   }
 
@@ -355,8 +361,7 @@
   function getActiveOutput() {
     if (activeTab === 'html') {
       var frame = document.getElementById('preview-html');
-      var doc = frame.contentDocument || frame.contentWindow.document;
-      return doc.documentElement.outerHTML;
+      return frame.srcdoc || '';
     }
     if (activeTab === 'react') {
       return document.querySelector('#preview-react code').textContent;
