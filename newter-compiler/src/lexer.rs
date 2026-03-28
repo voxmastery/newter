@@ -101,6 +101,23 @@ pub enum TokenKind {
     Carousel,
     Chart,
 
+    // New elements (v0.2)
+    Table,
+    Avatar,
+    Skeleton,
+    Drawer,
+    Select,
+    Textarea,
+    Popover,
+    Separator,
+    Timeline,
+    Rating,
+    FileUpload,
+    ColorPicker,
+    TreeView,
+    CommandPalette,
+    Splitter,
+
     // Property names (common)
     Width,
     Height,
@@ -230,6 +247,21 @@ impl fmt::Display for TokenKind {
             TokenKind::Feed => write!(f, "feed"),
             TokenKind::Carousel => write!(f, "carousel"),
             TokenKind::Chart => write!(f, "chart"),
+            TokenKind::Table => write!(f, "table"),
+            TokenKind::Avatar => write!(f, "avatar"),
+            TokenKind::Skeleton => write!(f, "skeleton"),
+            TokenKind::Drawer => write!(f, "drawer"),
+            TokenKind::Select => write!(f, "select"),
+            TokenKind::Textarea => write!(f, "textarea"),
+            TokenKind::Popover => write!(f, "popover"),
+            TokenKind::Separator => write!(f, "separator"),
+            TokenKind::Timeline => write!(f, "timeline"),
+            TokenKind::Rating => write!(f, "rating"),
+            TokenKind::FileUpload => write!(f, "fileUpload"),
+            TokenKind::ColorPicker => write!(f, "colorPicker"),
+            TokenKind::TreeView => write!(f, "treeView"),
+            TokenKind::CommandPalette => write!(f, "commandPalette"),
+            TokenKind::Splitter => write!(f, "splitter"),
             TokenKind::Width => write!(f, "width"),
             TokenKind::Height => write!(f, "height"),
             TokenKind::Fill => write!(f, "fill"),
@@ -314,7 +346,11 @@ impl TokenKind {
             | TokenKind::Modal | TokenKind::ConfirmDialog | TokenKind::Toast | TokenKind::Notification
             | TokenKind::Alert | TokenKind::MessageBox | TokenKind::Tooltip | TokenKind::Loader
             | TokenKind::ProgressBar | TokenKind::Badge | TokenKind::Icon | TokenKind::Tag
-            | TokenKind::Comment | TokenKind::Feed | TokenKind::Carousel | TokenKind::Chart => TokenCategory::Keyword,
+            | TokenKind::Comment | TokenKind::Feed | TokenKind::Carousel | TokenKind::Chart
+            | TokenKind::Table | TokenKind::Avatar | TokenKind::Skeleton | TokenKind::Drawer
+            | TokenKind::Select | TokenKind::Textarea | TokenKind::Popover | TokenKind::Separator
+            | TokenKind::Timeline | TokenKind::Rating | TokenKind::FileUpload | TokenKind::ColorPicker
+            | TokenKind::TreeView | TokenKind::CommandPalette | TokenKind::Splitter => TokenCategory::Keyword,
             TokenKind::Width | TokenKind::Height | TokenKind::Fill | TokenKind::Stroke
             | TokenKind::Radius | TokenKind::Padding | TokenKind::Gap | TokenKind::Grow
             | TokenKind::Shrink | TokenKind::Align | TokenKind::Justify | TokenKind::Direction
@@ -634,6 +670,21 @@ impl<'a> Lexer<'a> {
             "feed" => TokenKind::Feed,
             "carousel" => TokenKind::Carousel,
             "chart" => TokenKind::Chart,
+            "table" => TokenKind::Table,
+            "avatar" => TokenKind::Avatar,
+            "skeleton" => TokenKind::Skeleton,
+            "drawer" => TokenKind::Drawer,
+            "select" => TokenKind::Select,
+            "textarea" => TokenKind::Textarea,
+            "popover" => TokenKind::Popover,
+            "separator" => TokenKind::Separator,
+            "timeline" => TokenKind::Timeline,
+            "rating" => TokenKind::Rating,
+            "fileUpload" => TokenKind::FileUpload,
+            "colorPicker" => TokenKind::ColorPicker,
+            "treeView" => TokenKind::TreeView,
+            "commandPalette" => TokenKind::CommandPalette,
+            "splitter" => TokenKind::Splitter,
             "width" | "height" | "fill" | "stroke" | "radius" | "padding" | "gap"
             | "grow" | "shrink" | "align" | "justify" | "direction"
             | "fontSize" | "fontWeight" | "shadow" => {

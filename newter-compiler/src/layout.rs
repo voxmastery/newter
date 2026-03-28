@@ -342,7 +342,7 @@ fn layout_kind_from_element(k: ElementKind) -> LayoutKind {
         Header | Footer | Container | Sidebar | Section | Widget => LayoutKind::Column,
         Accordion | Bento | Breadcrumb | Hamburger | Kebab | Meatballs | Doner
         | Tabs | Pagination | LinkList | Nav | Form | Feed | Carousel => LayoutKind::Column,
-        Modal => LayoutKind::Modal,
+        Modal | Drawer | Popover => LayoutKind::Modal,
         Card | Box | ConfirmDialog | Toast | Notification | Alert | MessageBox
         | Tooltip | Loader | ProgressBar | Badge | Icon | Tag | Comment | Chart => LayoutKind::Box,
         Text => LayoutKind::Text,
@@ -351,12 +351,14 @@ fn layout_kind_from_element(k: ElementKind) -> LayoutKind {
         Grid => LayoutKind::Grid,
         Stack => LayoutKind::Stack,
         Center => LayoutKind::Center,
-        Spacer => LayoutKind::Spacer,
-        Image => LayoutKind::Image,
+        Spacer | Separator => LayoutKind::Spacer,
+        Image | Avatar | Skeleton | Rating => LayoutKind::Image,
         Button => LayoutKind::Button,
-        Input | Password | Search => LayoutKind::Input,
+        Input | Password | Search | Select | Textarea | FileUpload | ColorPicker => LayoutKind::Input,
         Checkbox | Radio | Dropdown | Combobox | Multiselect | DatePicker | Picker
         | Slider | Stepper | Toggle => LayoutKind::Box,
+        Table | Timeline | TreeView | CommandPalette => LayoutKind::Column,
+        Splitter => LayoutKind::Row,
     }
 }
 

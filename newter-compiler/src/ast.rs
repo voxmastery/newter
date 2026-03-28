@@ -218,6 +218,23 @@ pub enum ElementKind {
     Feed,
     Carousel,
     Chart,
+
+    // New elements (v0.2)
+    Table,
+    Avatar,
+    Skeleton,
+    Drawer,
+    Select,
+    Textarea,
+    Popover,
+    Separator,
+    Timeline,
+    Rating,
+    FileUpload,
+    ColorPicker,
+    TreeView,
+    CommandPalette,
+    Splitter,
 }
 
 #[derive(Debug, Clone)]
@@ -334,6 +351,21 @@ impl ElementKind {
             TokenKind::Feed => Some(ElementKind::Feed),
             TokenKind::Carousel => Some(ElementKind::Carousel),
             TokenKind::Chart => Some(ElementKind::Chart),
+            TokenKind::Table => Some(ElementKind::Table),
+            TokenKind::Avatar => Some(ElementKind::Avatar),
+            TokenKind::Skeleton => Some(ElementKind::Skeleton),
+            TokenKind::Drawer => Some(ElementKind::Drawer),
+            TokenKind::Select => Some(ElementKind::Select),
+            TokenKind::Textarea => Some(ElementKind::Textarea),
+            TokenKind::Popover => Some(ElementKind::Popover),
+            TokenKind::Separator => Some(ElementKind::Separator),
+            TokenKind::Timeline => Some(ElementKind::Timeline),
+            TokenKind::Rating => Some(ElementKind::Rating),
+            TokenKind::FileUpload => Some(ElementKind::FileUpload),
+            TokenKind::ColorPicker => Some(ElementKind::ColorPicker),
+            TokenKind::TreeView => Some(ElementKind::TreeView),
+            TokenKind::CommandPalette => Some(ElementKind::CommandPalette),
+            TokenKind::Splitter => Some(ElementKind::Splitter),
             _ => None,
         }
     }
