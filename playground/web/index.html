@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Newt Playground</title>
+  <meta name="description" content="Browser-based Newt code editor with live preview. Write Newt code and see HTML, React, and JSON output instantly.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- CodeMirror 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/theme/dracula.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/javascript/javascript.min.js"></script>
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <a href="/" class="logo">
+        <span class="logo-text">newt</span>
+        <span class="logo-sub">playground</span>
+      </a>
+      <span class="badge">v0.1 alpha</span>
+    </div>
+    <nav class="header-right">
+      <div class="example-selector">
+        <select id="examples" aria-label="Load example">
+          <option value="">Examples</option>
+          <option value="counter">Counter</option>
+          <option value="dashboard">Dashboard</option>
+          <option value="form">Form</option>
+        </select>
+      </div>
+      <a href="https://newter.vercel.app" class="nav-link" target="_blank" rel="noopener">Docs</a>
+      <a href="https://github.com/voxmastery/newter" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      <button id="share-btn" class="btn-icon" title="Share (copy link)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <polyline points="16 6 12 2 8 6"/>
+          <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main playground area -->
+  <main class="playground">
+    <!-- Editor pane -->
+    <section class="pane pane-editor">
+      <div class="pane-header">
+        <span class="pane-title">Editor</span>
+        <span class="pane-hint">Newt</span>
+      </div>
+      <div id="editor"></div>
+    </section>
+
+    <!-- Resizable divider -->
+    <div class="divider" id="divider" role="separator" aria-orientation="vertical"></div>
+
+    <!-- Preview pane -->
+    <section class="pane pane-preview">
+      <div class="pane-header">
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-target="html" role="tab" aria-selected="true">HTML</button>
+          <button class="tab" data-target="react" role="tab" aria-selected="false">React</button>
+          <button class="tab" data-target="json" role="tab" aria-selected="false">JSON</button>
+        </div>
+        <button id="copy-btn" class="btn-icon" title="Copy output">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+        </button>
+      </div>
+      <div class="preview-content">
+        <iframe id="preview-html" class="preview-frame" sandbox="allow-scripts" title="HTML Preview"></iframe>
+        <pre id="preview-react" class="preview-code hidden"><code></code></pre>
+        <pre id="preview-json" class="preview-code hidden"><code></code></pre>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span class="shortcut-hint">
+      <kbd>Ctrl</kbd>+<kbd>S</kbd> Format
+      <span class="sep"></span>
+      <kbd>Ctrl</kbd>+<kbd>Enter</kbd> Compile
+      <span class="sep"></span>
+      <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> Copy output
+    </span>
+  </footer>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+  <script type="module">
+    // Load WASM compiler and wire into the playground
+    import init, { compile_to_html, compile_to_react, compile_to_json, check_syntax }
+      from './newt_playground_wasm.js';
+
+    async function loadWasm() {
+      try {
+        await init();
+        // Replace the placeholder compileNewt with real WASM calls
+        window.__newtWasm = { compile_to_html, compile_to_react, compile_to_json, check_syntax };
+        // Signal that WASM is ready
+        document.dispatchEvent(new CustomEvent('wasm-ready'));
+        console.log('[newt] WASM compiler loaded (245 KB)');
+      } catch (e) {
+        console.warn('[newt] WASM failed to load, using placeholder:', e);
+      }
+    }
+    loadWasm();
+  </script>
+</body>
+</html>
