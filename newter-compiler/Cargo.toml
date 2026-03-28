@@ -2,7 +2,7 @@
 name = "newter-compiler"
 version = "0.1.1"
 edition = "2021"
-description = "A UI language compiler — 58 built-in elements, compiles to canvas, HTML, and JSON"
+description = "A UI language compiler — 73 built-in elements, compiles to canvas, HTML, and JSON"
 authors = ["Ganesh <voxmastery@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/voxmastery/newter"

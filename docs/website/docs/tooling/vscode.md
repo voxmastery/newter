@@ -57,7 +57,7 @@ Errors appear as red underlines in the editor and in the Problems panel (Ctrl+Sh
 
 The extension offers context-aware completions:
 
-- **Element names**: start typing and see suggestions for all 58 built-in elements.
+- **Element names**: start typing and see suggestions for all 73 built-in elements.
 - **Prop names**: inside an element's prop list, get suggestions for valid props (e.g., `fill`, `radius`, `padding`, `gap`).
 - **Variables**: references to `let` and `state` variables are suggested.
 - **Components**: your custom components appear in the completion list alongside built-in elements.

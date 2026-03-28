@@ -106,7 +106,7 @@ const config = {
     ({
       image: 'img/og-image.svg',
       metadata: [
-        {name: 'description', content: 'Newt is a UI language that compiles to canvas, HTML, and JSON. 58 built-in elements, reactive state, and a syntax you can learn in 5 minutes.'},
+        {name: 'description', content: 'Newt is a UI language that compiles to canvas, HTML, and JSON. 73 built-in elements, reactive state, and a syntax you can learn in 5 minutes.'},
         {name: 'keywords', content: 'newt, UI language, canvas, HTML, JSON, declarative UI, Rust compiler'},
         {property: 'og:type', content: 'website'},
       ],

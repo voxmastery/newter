@@ -9,7 +9,7 @@ src/theme/prism-newt.js
 3. hex-color: /#[0-9a-fA-F]{6,8}\b/ (alias: constant)
 4. number: /\b\d+(?:\.\d+)?\b/
 5. keyword: let, state, screen, component, theme, use, import, if, else, for, in
-6. element: all 58 element names (alias: tag)
+6. element: all 73 element names (alias: tag)
 7. prop: all prop names followed by colon (alias: attr-name)
 8. boolean: true, false
 9. punctuation: {}()[];:,

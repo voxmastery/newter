@@ -175,7 +175,7 @@ screen Main {
 
 ## Next steps
 
-- [Elements](./elements.md) -- the full list of 58 built-in elements.
+- [Elements](./elements.md) -- the full list of 73 built-in elements.
 - [Props](./props.md) -- every prop with its type, default, and description.
 - [Components](./components.md) -- how to define and use reusable components.
 - [State](./state.md) -- reactive state and event handlers.

@@ -1,6 +1,6 @@
 # Show HN: Newt — A UI language that compiles to canvas, HTML, and JSON
 
-Newt is a declarative UI language. You describe interfaces in `.newt` files using 58 built-in elements, and the compiler outputs GPU-accelerated canvas, static HTML, or structured JSON from the same source.
+Newt is a declarative UI language. You describe interfaces in `.newt` files using 73 built-in elements, and the compiler outputs GPU-accelerated canvas, static HTML, or structured JSON from the same source.
 
 I built it because describing a UI shouldn't require picking a framework first. Every project starts with the same question — React? Svelte? Something else? — before you've written a single layout. Newt skips that. You declare what you want, then choose the output target at compile time.
 

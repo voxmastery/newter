@@ -35,7 +35,7 @@ export default function HomepageHero() {
         <div className={styles.badge}>
           <span>v0.1</span>
           <span>&middot;</span>
-          <span>58 built-in elements</span>
+          <span>73 built-in elements</span>
         </div>
         <h1 className={styles.headline}>
           Describe UIs{' '}

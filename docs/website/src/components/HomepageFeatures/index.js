@@ -5,7 +5,7 @@ import styles from './styles.module.css';
 const features = [
   {
     icon: LayoutGrid,
-    title: '58 Built-in Elements',
+    title: '73 Built-in Elements',
     description:
       'From box and text to modal, chart, and carousel — every common UI element is a first-class citizen.',
   },

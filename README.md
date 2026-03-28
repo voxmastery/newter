@@ -7,7 +7,7 @@
 
 **A UI language that compiles to canvas, HTML, and JSON.**
 
-Describing a UI shouldn't require picking a framework first. Newt gives you 58 built-in elements, reactive state, and a syntax you can learn in 5 minutes. Write once, compile to a GPU canvas, static HTML, or a JSON layout tree.
+Describing a UI shouldn't require picking a framework first. Newt gives you 73 built-in elements, reactive state, and a syntax you can learn in 5 minutes. Write once, compile to a GPU canvas, static HTML, or a JSON layout tree.
 
 > **Status: alpha (v0.1)** — functional but the language is evolving. Expect breaking changes.
 
@@ -80,7 +80,7 @@ newter-compiler serve hello.newt
 
 ## What's in the box
 
-- **58 built-in elements** — button, card, modal, grid, chart, carousel, and more
+- **73 built-in elements** — button, card, modal, grid, chart, carousel, and more
 - **Reactive state** — `state count = 0` with automatic re-rendering
 - **Components** — reusable UI blocks with parameters
 - **Themes** — named variable sets applied with `use theme`

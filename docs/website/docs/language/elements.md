@@ -1,17 +1,17 @@
 ---
 title: Elements
-description: All 58 built-in Newt elements organized by category with usage examples.
+description: All 73 built-in Newt elements organized by category with usage examples.
 keywords: [newt, elements, components, layout, input, navigation, feedback, display]
 sidebar_position: 2
 ---
 
 # Elements
 
-Newt ships with 58 built-in elements organized into six categories. Every element can accept props and, where it makes sense, children.
+Newt ships with 73 built-in elements organized into six categories. Every element can accept props and, where it makes sense, children.
 
 ```mermaid
 flowchart TD
-    A["58 Built-in Elements"] --> B["Sections (5)"]
+    A["73 Built-in Elements"] --> B["Sections (5)"]
     A --> C["Layout (8)"]
     A --> D["Navigation (11)"]
     A --> E["Input (15)"]

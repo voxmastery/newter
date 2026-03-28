@@ -31,7 +31,7 @@ The Newt LSP server supports the following LSP methods:
 
 Provides context-aware completions for:
 
-- Built-in element names (all 58 elements)
+- Built-in element names (all 73 elements)
 - Prop names within element declarations
 - Variable names (`let` and `state`)
 - Component names

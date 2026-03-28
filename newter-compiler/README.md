@@ -46,7 +46,7 @@ newter-compiler check app.newt                        # Validate syntax
 
 ## The language
 
-58 built-in elements. Reactive state. Components. Themes. Imports. A syntax you can learn in 5 minutes.
+73 built-in elements. Reactive state. Components. Themes. Imports. A syntax you can learn in 5 minutes.
 
 ```newt
 state count = 0
@@ -78,7 +78,7 @@ Describing a UI shouldn't require picking a framework first. Newt separates *wha
 
 - [Getting Started](https://newter.vercel.app/docs/getting-started)
 - [Language Reference](https://newter.vercel.app/docs/language)
-- [58 Built-in Elements](https://newter.vercel.app/docs/language/elements)
+- [73 Built-in Elements](https://newter.vercel.app/docs/language/elements)
 - [CLI Reference](https://newter.vercel.app/docs/compiler/cli)
 - [Examples](https://newter.vercel.app/docs/examples)
 
