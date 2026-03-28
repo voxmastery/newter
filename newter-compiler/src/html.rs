@@ -38,9 +38,14 @@ pub fn layout_to_html(
         }
         out.push_str("}");
     }
-    out.push_str("body{margin:0;background:#FEFBE7;font-family:system-ui,sans-serif;}");
+    out.push_str("*{margin:0;box-sizing:border-box;}");
+    out.push_str("body{margin:0;background:#f9fafb;font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}");
+    out.push_str("@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');");
     out.push_str(".root{position:relative;width:100%;height:100vh;min-height:640px;}");
-    out.push_str(".n{position:absolute;box-sizing:border-box;}");
+    out.push_str(".n{position:absolute;box-sizing:border-box;transition:transform 150ms ease,box-shadow 150ms ease,opacity 150ms ease;}");
+    out.push_str(".n[data-on-click]:hover,.n[data-onclick]:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.1);cursor:pointer;}");
+    out.push_str("@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}");
+    out.push_str(".n{animation:fadeIn 300ms ease-out both;}");
     out.push_str("</style></head><body><div class=\"root\" style=\"width:");
     out.push_str(&viewport_w.to_string());
     out.push_str("px;height:");
@@ -93,8 +98,16 @@ fn emit_node(out: &mut String, n: &LayoutNode) {
     if let Some(ref t) = n.text {
         write!(out, "{}", escape(t)).unwrap();
     }
-    for c in &n.children {
+    for (i, c) in n.children.iter().enumerate() {
+        // Stagger entrance animation for children
+        if i > 0 {
+            let delay = i * 50; // 50ms between each child
+            write!(out, "<div style=\"animation-delay:{}ms;\">", delay).unwrap();
+        }
         emit_node(out, c);
+        if i > 0 {
+            out.push_str("</div>");
+        }
     }
     write!(out, "</{}>", tag).unwrap();
 }
@@ -130,7 +143,7 @@ fn node_style(n: &LayoutNode) -> String {
             s.push_str(&format!("transition:all {}ms ease;", ms as i32));
         }
     }
-    s.push_str("display:flex;align-items:center;padding:4px 8px;");
+    s.push_str("display:flex;align-items:center;padding:4px 8px;overflow:hidden;");
     s
 }
 
@@ -177,10 +190,15 @@ pub fn layout_to_reactive_html(
         }
         out.push_str("}");
     }
-    out.push_str("body{margin:0;background:#FEFBE7;font-family:system-ui,sans-serif;}");
+    out.push_str("*{margin:0;box-sizing:border-box;}");
+    out.push_str("body{margin:0;background:#f9fafb;font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}");
+    out.push_str("@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');");
     out.push_str(".root{position:relative;width:100%;height:100vh;min-height:640px;}");
-    out.push_str(".n{position:absolute;box-sizing:border-box;}");
+    out.push_str(".n{position:absolute;box-sizing:border-box;transition:transform 150ms ease,box-shadow 150ms ease,opacity 150ms ease;}");
     out.push_str("[data-onclick]{cursor:pointer;user-select:none;}");
+    out.push_str("[data-onclick]:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}");
+    out.push_str("@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}");
+    out.push_str(".n{animation:fadeIn 300ms ease-out both;}");
     out.push_str("</style></head><body><div id=\"_newt_root\" class=\"root\" style=\"width:");
     out.push_str(&viewport_w.to_string());
     out.push_str("px;height:");
