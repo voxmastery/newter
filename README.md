@@ -16,12 +16,13 @@ Describing a UI shouldn't require picking a framework first. Newt gives you 73 b
 ```
 ┌─────────────────┐     ┌──────────────┐
 │                 │     │ GPU Canvas   │  newter-compiler run
-│   .newt file    │────▶│ HTML Page    │  newter-compiler build --html
+│                 │     │ HTML Page    │  newter-compiler build --html
+│   .newt file    │────▶│ React JSX    │  newter-compiler build --react
 │                 │     │ JSON Tree    │  newter-compiler build --json
 └─────────────────┘     └──────────────┘
 ```
 
-One source file. Three output targets. No framework, no runtime, no build step.
+One source file. Four output targets. No framework, no runtime, no build step.
 
 ## Same UI, less code
 
@@ -76,6 +77,8 @@ newter-compiler serve hello.newt
 | `newter-compiler run app.newt` | GPU-rendered canvas window |
 | `newter-compiler serve app.newt` | Browser IDE with hot reload |
 | `newter-compiler build app.newt --html -o out.html` | Standalone HTML file |
+| `newter-compiler build app.newt --react -o App.jsx` | React component |
+| `newter-compiler build app.newt --json -o out.json` | JSON layout tree |
 | `newter-compiler check app.newt` | Validate syntax (for CI) |
 
 ## What's in the box
