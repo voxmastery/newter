@@ -551,4 +551,150 @@
     editor.focus();
   }, 100);
 
+  // ---- AI Chat Panel ----
+
+  var NEWT_SYSTEM_PROMPT = 'You are a Newt UI code generator. Newt is a declarative UI language.\n\n' +
+    'CRITICAL RULES:\n' +
+    '- Output ONLY valid .newt code, no explanation, no markdown fences\n' +
+    '- Always wrap in a screen block: screen Main { ... }\n' +
+    '- State declarations end with semicolons: state count = 0;\n' +
+    '- Use call syntax: element(props)(children)\n' +
+    '- When passing a component parameter as first arg with named props, use block syntax: text { content: label, fontSize: 14 }\n' +
+    '- Available semantic tokens: primary, secondary, danger, success, warning, muted, ghost, bold, heading, subheading, caption, rounded, compact, comfortable, spacious, elevated\n' +
+    '- 73 elements: header, footer, container, sidebar, section, row, column, stack, center, box, widget, card, grid, spacer, image, button, input, text, icon, tag, badge, modal, toast, alert, tooltip, loader, progressBar, tabs, nav, accordion, breadcrumb, dropdown, checkbox, radio, toggle, slider, stepper, form, carousel, chart, table, avatar, skeleton, drawer, select, textarea, separator, timeline, rating, treeView, splitter, and more\n' +
+    '- Common props: fill, stroke, radius, padding, gap, fontSize, fontWeight, width, height, shadow, onClick, placeholder, content\n\n' +
+    'Example:\nstate count = 0;\n\nscreen Counter {\n    column(gap: 16, padding: 32)(\n        text("Count: {count}", heading)\n        button("+1", primary, rounded, onClick: { count = count + 1 })\n    )\n}';
+
+  var aiPanel = document.getElementById('ai-panel');
+  var aiToggle = document.getElementById('ai-toggle');
+  var aiClose = document.getElementById('ai-close');
+  var aiKey = document.getElementById('ai-key');
+  var aiPrompt = document.getElementById('ai-prompt');
+  var aiSend = document.getElementById('ai-send');
+  var aiMessages = document.getElementById('ai-messages');
+
+  // Load saved API key
+  var savedKey = localStorage.getItem('newt-ai-key') || '';
+  if (savedKey) {
+    aiKey.value = savedKey;
+    aiKey.classList.add('has-key');
+  }
+
+  aiKey.addEventListener('input', function () {
+    var key = aiKey.value.trim();
+    localStorage.setItem('newt-ai-key', key);
+    aiKey.classList.toggle('has-key', key.length > 10);
+  });
+
+  aiToggle.addEventListener('click', function () {
+    aiPanel.classList.remove('hidden');
+    aiPrompt.focus();
+  });
+
+  aiClose.addEventListener('click', function () {
+    aiPanel.classList.add('hidden');
+  });
+
+  function addMessage(text, role) {
+    var div = document.createElement('div');
+    div.className = 'ai-message ' + role;
+    div.textContent = text;
+    aiMessages.appendChild(div);
+    aiMessages.scrollTop = aiMessages.scrollHeight;
+    return div;
+  }
+
+  function addLoading() {
+    var div = document.createElement('div');
+    div.className = 'ai-loading';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    aiMessages.appendChild(div);
+    aiMessages.scrollTop = aiMessages.scrollHeight;
+    return div;
+  }
+
+  async function generateWithAI(prompt) {
+    var key = aiKey.value.trim();
+    if (!key) {
+      addMessage('Please enter your Anthropic API key above.', 'error');
+      aiKey.focus();
+      return;
+    }
+
+    addMessage(prompt, 'user');
+    var loading = addLoading();
+    aiSend.disabled = true;
+    aiPrompt.disabled = true;
+
+    try {
+      var resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 2048,
+          system: NEWT_SYSTEM_PROMPT,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      loading.remove();
+
+      if (!resp.ok) {
+        var errData = await resp.json().catch(function () { return {}; });
+        throw new Error(errData.error?.message || 'API error: ' + resp.status);
+      }
+
+      var data = await resp.json();
+      var code = data.content[0].text;
+
+      // Strip markdown fences if model includes them
+      code = code.replace(/^```newt?\n?/gm, '').replace(/```$/gm, '').trim();
+
+      // Validate with WASM if available
+      var wasm = window.__newtWasm;
+      if (wasm) {
+        try {
+          wasm.check_syntax(code);
+          addMessage('Generated valid Newt code!', 'assistant');
+        } catch (e) {
+          addMessage('Generated code (may have issues: ' + String(e).substring(0, 80) + ')', 'assistant');
+        }
+      } else {
+        addMessage('Generated code (WASM not loaded for validation)', 'assistant');
+      }
+
+      // Set code in editor
+      editor.setValue(code);
+      updatePreview();
+
+    } catch (e) {
+      loading.remove();
+      addMessage(String(e.message || e), 'error');
+    } finally {
+      aiSend.disabled = false;
+      aiPrompt.disabled = false;
+      aiPrompt.value = '';
+      aiPrompt.focus();
+    }
+  }
+
+  aiSend.addEventListener('click', function () {
+    var prompt = aiPrompt.value.trim();
+    if (prompt) generateWithAI(prompt);
+  });
+
+  aiPrompt.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      var prompt = aiPrompt.value.trim();
+      if (prompt) generateWithAI(prompt);
+    }
+  });
+
 })();

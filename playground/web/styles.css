@@ -499,3 +499,240 @@ kbd {
     display: none;
   }
 }
+
+/* ============================================================
+   AI Chat Panel
+   ============================================================ */
+.ai-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 380px;
+  background: #111113;
+  border-left: 1px solid #27272a;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.3);
+  animation: slideIn 200ms ease-out;
+}
+
+.ai-panel.hidden {
+  display: none;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #27272a;
+}
+
+.ai-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f9fafb;
+  font-family: 'Inter', sans-serif;
+}
+
+.ai-close {
+  background: none;
+  border: none;
+  color: #71717a;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 150ms ease;
+}
+
+.ai-close:hover {
+  color: #f9fafb;
+}
+
+.ai-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.ai-hint {
+  font-size: 13px;
+  color: #71717a;
+  line-height: 1.5;
+  padding: 12px;
+  background: #1a1a1d;
+  border-radius: 8px;
+  border: 1px solid #27272a;
+}
+
+.ai-message {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-family: 'Inter', sans-serif;
+}
+
+.ai-message.user {
+  background: #7c3aed;
+  color: white;
+  margin-left: 32px;
+}
+
+.ai-message.assistant {
+  background: #1a1a1d;
+  color: #a1a1aa;
+  margin-right: 32px;
+  border: 1px solid #27272a;
+}
+
+.ai-message.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.ai-loading {
+  display: flex;
+  gap: 4px;
+  padding: 12px 14px;
+}
+
+.ai-loading span {
+  width: 6px;
+  height: 6px;
+  background: #7c3aed;
+  border-radius: 50%;
+  animation: aiBounce 1.2s infinite;
+}
+
+.ai-loading span:nth-child(2) { animation-delay: 0.2s; }
+.ai-loading span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes aiBounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-8px); }
+}
+
+.ai-input-area {
+  padding: 12px;
+  border-top: 1px solid #27272a;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-key-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: #0f111a;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  color: #a1a1aa;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.ai-key-input:focus {
+  border-color: #7c3aed;
+}
+
+.ai-key-input.has-key {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.ai-prompt-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ai-prompt-input {
+  flex: 1;
+  padding: 10px 14px;
+  background: #0f111a;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  color: #f9fafb;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.ai-prompt-input:focus {
+  border-color: #7c3aed;
+}
+
+.ai-send-btn {
+  padding: 10px 18px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 150ms ease;
+  white-space: nowrap;
+}
+
+.ai-send-btn:hover {
+  background: #6d28d9;
+}
+
+.ai-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* AI Toggle Button */
+.ai-toggle-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  z-index: 50;
+}
+
+.ai-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(124, 58, 237, 0.5);
+}
+
+@media (max-width: 768px) {
+  .ai-panel {
+    width: 100%;
+  }
+}
