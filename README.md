@@ -5,11 +5,13 @@
 [![Discord](https://img.shields.io/badge/Discord-Join-7c3aed?logo=discord&logoColor=white)](https://discord.gg/s5ZjeNN8H)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**A UI language that compiles to canvas, HTML, and JSON.**
+**A UI language that compiles to canvas, HTML, React, and JSON.**
 
-Describing a UI shouldn't require picking a framework first. Newt gives you 73 built-in elements, reactive state, and a syntax you can learn in 5 minutes. Write once, compile to a GPU canvas, static HTML, or a JSON layout tree.
+Describing a UI shouldn't require picking a framework first. Newt gives you 73 built-in elements, reactive state, and a syntax you can learn in 5 minutes. Write once, compile to a GPU canvas, static HTML, React components, or a JSON layout tree.
 
 > **Status: alpha (v0.1)** — functional but the language is evolving. Expect breaking changes.
+
+![Newt Demo](https://raw.githubusercontent.com/voxmastery/newter/main/docs/website/static/img/demo.gif)
 
 ## The idea
 
