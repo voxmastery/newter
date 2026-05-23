@@ -28,7 +28,12 @@ fn main() -> ExitCode {
 
     match cli.command {
         None => run_run(cli.file, cli.screen),
-        Some(Command::Serve { file, port, host, screen }) => {
+        Some(Command::Serve {
+            file,
+            port,
+            host,
+            screen,
+        }) => {
             let path = file.unwrap_or_else(|| {
                 eprintln!("error: serve requires <file>");
                 eprintln!("usage: newter-compiler serve <file.newt> [--port PORT] [--host HOST] [--screen NAME]");
@@ -152,7 +157,7 @@ fn run_build(
 
     if react {
         let out_path = output.unwrap_or_else(|| PathBuf::from("out.jsx"));
-        let react_out = newter_compiler::layout_to_react(&program, &layout);
+        let react_out = layout_to_react(&program, &layout);
         if let Err(e) = std::fs::write(&out_path, react_out) {
             eprintln!("error: write {}: {}", out_path.display(), e);
             return ExitCode::from(1);
@@ -218,14 +223,25 @@ fn run_watch(
             return ExitCode::from(1);
         }
     };
-    if debouncer.watch(path.as_path(), RecursiveMode::NonRecursive).is_err() {
+    if debouncer
+        .watch(path.as_path(), RecursiveMode::NonRecursive)
+        .is_err()
+    {
         eprintln!("error: could not watch {}", path.display());
         return ExitCode::from(1);
     }
     println!("Watching {} (Ctrl+C to stop)", path.display());
     loop {
         if rx.recv().is_ok() {
-            if run_build(path.clone(), html, json, false, output.clone(), screen.clone()) == ExitCode::SUCCESS {
+            if run_build(
+                path.clone(),
+                html,
+                json,
+                false,
+                output.clone(),
+                screen.clone(),
+            ) == ExitCode::SUCCESS
+            {
                 println!("Build ok");
             }
         }
@@ -264,7 +280,9 @@ screen Main {
 
     let source = Source::new(
         source_code.clone(),
-        source_path.as_ref().and_then(|p| p.to_str().map(String::from)),
+        source_path
+            .as_ref()
+            .and_then(|p| p.to_str().map(String::from)),
     );
 
     if let Err(e) = compile(
@@ -297,9 +315,7 @@ struct Cli {
 #[derive(clap::Subcommand)]
 enum Command {
     /// Parse and layout only; exit 0 on success
-    Check {
-        file: Option<PathBuf>,
-    },
+    Check { file: Option<PathBuf> },
     /// Build to HTML, JSON, or React
     Build {
         file: Option<PathBuf>,
@@ -337,4 +353,3 @@ enum Command {
         screen: Option<String>,
     },
 }
-

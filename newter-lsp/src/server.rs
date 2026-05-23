@@ -2,14 +2,14 @@
 //! Supports completion, hover, and go-to-definition via symbol table from AST.
 
 use newter_compiler::{
-    compile, parse, check_all, symbol_table, completion_keywords, completion_element_names,
-    completion_prop_names, NewtError, SymbolKind,
+    check_all, compile, completion_element_names, completion_keywords, completion_prop_names,
+    parse, symbol_table, NewtError, SymbolKind,
 };
 use std::collections::HashMap;
 use std::sync::RwLock;
 use tower_lsp::jsonrpc::Result;
-use tower_lsp::lsp_types::*;
 use tower_lsp::lsp_types::OneOf;
+use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 #[derive(Debug)]
@@ -42,7 +42,9 @@ impl Backend {
 
 fn error_to_diagnostic(err: NewtError) -> Diagnostic {
     let (range, message) = match &err {
-        NewtError::Lexer { span, message, .. } | NewtError::Parse { span, message, .. } | NewtError::Semantic { span, message, .. } => {
+        NewtError::Lexer { span, message, .. }
+        | NewtError::Parse { span, message, .. }
+        | NewtError::Semantic { span, message, .. } => {
             let start = Position {
                 line: span.line.saturating_sub(1) as u32,
                 character: span.column.saturating_sub(1) as u32,
@@ -61,8 +63,14 @@ fn error_to_diagnostic(err: NewtError) -> Diagnostic {
         }
         _ => (
             Range {
-                start: Position { line: 0, character: 0 },
-                end: Position { line: 0, character: 0 },
+                start: Position {
+                    line: 0,
+                    character: 0,
+                },
+                end: Position {
+                    line: 0,
+                    character: 0,
+                },
             },
             err.to_string(),
         ),
@@ -135,7 +143,9 @@ impl LanguageServer for Backend {
             );
         }
         let diags = self.diagnostics_for(&uri, &text, version);
-        self.client.publish_diagnostics(uri, diags, Some(version)).await;
+        self.client
+            .publish_diagnostics(uri, diags, Some(version))
+            .await;
     }
 
     async fn did_change(&self, params: DidChangeTextDocumentParams) {
@@ -182,11 +192,16 @@ impl LanguageServer for Backend {
             );
         }
         let diags = self.diagnostics_for(&uri, &full_text, version);
-        self.client.publish_diagnostics(uri, diags, Some(version)).await;
+        self.client
+            .publish_diagnostics(uri, diags, Some(version))
+            .await;
     }
 
     async fn did_close(&self, params: DidCloseTextDocumentParams) {
-        self.documents.write().unwrap().remove(&params.text_document.uri);
+        self.documents
+            .write()
+            .unwrap()
+            .remove(&params.text_document.uri);
         self.client
             .publish_diagnostics(params.text_document.uri, vec![], None)
             .await;
@@ -218,21 +233,26 @@ impl LanguageServer for Backend {
 
         let mut items: Vec<CompletionItem> = Vec::new();
 
-        let in_prop_context = prev.as_ref().and_then(|(span, _)| {
-            let t = text.get(span.start..span.end)?;
-            if t != "(" && t != "{" && t != "," {
-                return None;
-            }
-            let prev_span = prev_prev.as_ref()?.0;
-            let prev_text = text.get(prev_span.start..prev_span.end)?.to_lowercase();
-            let elements: std::collections::HashSet<_> =
-                completion_element_names().into_iter().map(|s| s.to_lowercase()).collect();
-            if elements.contains(prev_text.as_str()) {
-                Some(())
-            } else {
-                None
-            }
-        }).is_some();
+        let in_prop_context = prev
+            .as_ref()
+            .and_then(|(span, _)| {
+                let t = text.get(span.start..span.end)?;
+                if t != "(" && t != "{" && t != "," {
+                    return None;
+                }
+                let prev_span = prev_prev.as_ref()?.0;
+                let prev_text = text.get(prev_span.start..prev_span.end)?.to_lowercase();
+                let elements: std::collections::HashSet<_> = completion_element_names()
+                    .into_iter()
+                    .map(|s| s.to_lowercase())
+                    .collect();
+                if elements.contains(prev_text.as_str()) {
+                    Some(())
+                } else {
+                    None
+                }
+            })
+            .is_some();
 
         if in_prop_context {
             for name in completion_prop_names() {
@@ -286,13 +306,14 @@ impl LanguageServer for Backend {
             if let Some(program) = get_program(&text, path_ref) {
                 let symbols = symbol_table(&program);
                 for (name, (_span, kind)) in &symbols {
-                    let ok = prefix.is_empty()
-                        || name.to_lowercase().starts_with(prefix.as_str());
+                    let ok = prefix.is_empty() || name.to_lowercase().starts_with(prefix.as_str());
                     if !ok {
                         continue;
                     }
                     let (detail, kind_lsp) = match kind {
-                        SymbolKind::Variable => ("variable".to_string(), CompletionItemKind::VARIABLE),
+                        SymbolKind::Variable => {
+                            ("variable".to_string(), CompletionItemKind::VARIABLE)
+                        }
                         SymbolKind::Component { params } => (
                             format!("component({})", params.join(", ")),
                             CompletionItemKind::FUNCTION,
@@ -351,10 +372,9 @@ impl LanguageServer for Backend {
                         format!("component {}({})", name, params.join(", ")),
                         Some("Reusable component.".to_string()),
                     ),
-                    SymbolKind::Screen => (
-                        format!("screen {}", name),
-                        Some("Root view.".to_string()),
-                    ),
+                    SymbolKind::Screen => {
+                        (format!("screen {}", name), Some("Root view.".to_string()))
+                    }
                     SymbolKind::Theme => (
                         format!("theme {}", name),
                         Some("Design tokens.".to_string()),
@@ -382,7 +402,10 @@ impl LanguageServer for Backend {
             }));
         }
 
-        if completion_element_names().iter().any(|e| e.to_lowercase() == kw_lower) {
+        if completion_element_names()
+            .iter()
+            .any(|e| e.to_lowercase() == kw_lower)
+        {
             return Ok(Some(Hover {
                 contents: HoverContents::Scalar(MarkedString::String(format!(
                     "**element** `{}`\n\nLayout or content element.",
@@ -437,7 +460,10 @@ impl LanguageServer for Backend {
             None => return Ok(None),
         };
         let range = span_to_range(def_span, &text);
-        Ok(Some(GotoDefinitionResponse::Scalar(Location { uri, range })))
+        Ok(Some(GotoDefinitionResponse::Scalar(Location {
+            uri,
+            range,
+        })))
     }
 }
 

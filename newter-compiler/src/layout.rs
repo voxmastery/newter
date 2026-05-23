@@ -102,19 +102,7 @@ fn get_prop_number(ctx: &EvalContext, props: &[Prop], name: &str, default: f32) 
     for p in props {
         let match_name = match &p.name {
             PropName::Ident(s) => s == name,
-            PropName::Width => name == "width",
-            PropName::Height => name == "height",
-            PropName::Padding => name == "padding",
-            PropName::Gap => name == "gap",
-            PropName::Radius => name == "radius",
-            PropName::FontSize => name == "fontSize",
-            PropName::MinWidth => name == "minWidth",
-            PropName::MaxWidth => name == "maxWidth",
-            PropName::MinHeight => name == "minHeight",
-            PropName::MaxHeight => name == "maxHeight",
-            PropName::Shadow => name == "shadow",
-            PropName::Transition => name == "transition",
-            _ => false,
+            PropName::Content => name == "content",
         };
         if !match_name {
             continue;
@@ -136,9 +124,7 @@ fn get_prop_color(ctx: &EvalContext, props: &[Prop], name: &str) -> Option<(u8, 
     for p in props {
         let match_name = match &p.name {
             PropName::Ident(s) => s == name,
-            PropName::Fill => name == "fill",
-            PropName::Stroke => name == "stroke",
-            _ => false,
+            PropName::Content => name == "content",
         };
         if !match_name {
             continue;
@@ -211,9 +197,6 @@ fn get_prop_string(ctx: &EvalContext, props: &[Prop], name: &str) -> Option<Stri
         let match_name = match &p.name {
             PropName::Ident(s) => s == name,
             PropName::Content => name == "content",
-            PropName::Role => name == "role",
-            PropName::AriaLabel => name == "ariaLabel",
-            _ => name == "onClick" || name == "href" || name == "name",
         };
         if !match_name {
             continue;
@@ -236,7 +219,9 @@ fn expr_to_handler_string(expr: &Expr) -> String {
         Expr::Assignment { name, value, .. } => {
             format!("{} = {}", name, expr_to_handler_string(value))
         }
-        Expr::Binary { left, op, right, .. } => {
+        Expr::Binary {
+            left, op, right, ..
+        } => {
             let op_str = match op {
                 BinaryOp::Add => "+",
                 BinaryOp::Sub => "-",
@@ -313,7 +298,6 @@ fn get_prop_content_template(props: &[Prop]) -> Option<String> {
         let is_content = match &p.name {
             PropName::Content => true,
             PropName::Ident(s) => s == "content",
-            _ => false,
         };
         if !is_content {
             continue;
@@ -340,11 +324,11 @@ fn layout_kind_from_element(k: ElementKind) -> LayoutKind {
     use ElementKind::*;
     match k {
         Header | Footer | Container | Sidebar | Section | Widget => LayoutKind::Column,
-        Accordion | Bento | Breadcrumb | Hamburger | Kebab | Meatballs | Doner
-        | Tabs | Pagination | LinkList | Nav | Form | Feed | Carousel => LayoutKind::Column,
+        Accordion | Bento | Breadcrumb | Hamburger | Kebab | Meatballs | Doner | Tabs
+        | Pagination | LinkList | Nav | Form | Feed | Carousel => LayoutKind::Column,
         Modal | Drawer | Popover => LayoutKind::Modal,
-        Card | Box | ConfirmDialog | Toast | Notification | Alert | MessageBox
-        | Tooltip | Loader | ProgressBar | Badge | Icon | Tag | Comment | Chart => LayoutKind::Box,
+        Card | Box | ConfirmDialog | Toast | Notification | Alert | MessageBox | Tooltip
+        | Loader | ProgressBar | Badge | Icon | Tag | Comment | Chart => LayoutKind::Box,
         Text => LayoutKind::Text,
         Row => LayoutKind::Row,
         Column => LayoutKind::Column,
@@ -354,9 +338,11 @@ fn layout_kind_from_element(k: ElementKind) -> LayoutKind {
         Spacer | Separator => LayoutKind::Spacer,
         Image | Avatar | Skeleton | Rating => LayoutKind::Image,
         Button => LayoutKind::Button,
-        Input | Password | Search | Select | Textarea | FileUpload | ColorPicker => LayoutKind::Input,
-        Checkbox | Radio | Dropdown | Combobox | Multiselect | DatePicker | Picker
-        | Slider | Stepper | Toggle => LayoutKind::Box,
+        Input | Password | Search | Select | Textarea | FileUpload | ColorPicker => {
+            LayoutKind::Input
+        }
+        Checkbox | Radio | Dropdown | Combobox | Multiselect | DatePicker | Picker | Slider
+        | Stepper | Toggle => LayoutKind::Box,
         Table | Timeline | TreeView | CommandPalette => LayoutKind::Column,
         Splitter => LayoutKind::Row,
     }
@@ -373,7 +359,12 @@ fn layout_tree_with_viewport(
     viewport: Rect,
 ) -> Result<LayoutNode, NewtError> {
     match expr {
-        Expr::Element { kind, props, children, .. } => {
+        Expr::Element {
+            kind,
+            props,
+            children,
+            ..
+        } => {
             let layout_kind = layout_kind_from_element(*kind);
             let aspect_ratio = get_prop_number(ctx, props, "aspectRatio", 0.0);
             let rect = if aspect_ratio > 0.0 {
@@ -386,7 +377,11 @@ fn layout_tree_with_viewport(
             let fill = get_prop_color(ctx, props, "fill");
             let stroke = get_prop_color(ctx, props, "stroke");
             let stroke_width = get_prop_number(ctx, props, "strokeWidth", 1.0);
-            let stroke_width = if stroke_width > 0.0 { Some(stroke_width) } else { None };
+            let stroke_width = if stroke_width > 0.0 {
+                Some(stroke_width)
+            } else {
+                None
+            };
             let radius = get_prop_number(ctx, props, "radius", 0.0);
             let font_size = get_prop_number(ctx, props, "fontSize", 16.0);
             let text = get_prop_string(ctx, props, "content");
@@ -394,11 +389,19 @@ fn layout_tree_with_viewport(
             let shadow = get_prop_number(ctx, props, "shadow", 0.0);
             let shadow = if shadow > 0.0 { Some(shadow) } else { None };
             let transition_ms = get_prop_number(ctx, props, "transition", 0.0);
-            let transition_ms = if transition_ms > 0.0 { Some(transition_ms as i32 as f32) } else { None };
+            let transition_ms = if transition_ms > 0.0 {
+                Some(transition_ms as i32 as f32)
+            } else {
+                None
+            };
             let role = get_prop_string(ctx, props, "role");
             let aria_label = get_prop_string(ctx, props, "ariaLabel");
             let focus_order = get_prop_number(ctx, props, "focusOrder", f32::NAN);
-            let focus_order = if !focus_order.is_nan() { Some(focus_order as i32) } else { None };
+            let focus_order = if !focus_order.is_nan() {
+                Some(focus_order as i32)
+            } else {
+                None
+            };
             let on_click = get_prop_handler(props);
             let content_template = get_prop_content_template(props);
             let href = get_prop_string(ctx, props, "href");
@@ -442,7 +445,8 @@ fn layout_tree_with_viewport(
                         let total_gap = gap * (total_children as f32 - 1.0);
                         let remaining_w = (inner.w - total_gap - fixed_w).max(0.0);
                         let flexible_w = if flexible_count > 0 {
-                            (remaining_w - gap * (flexible_count as f32 - 1.0)).max(0.0) / flexible_count as f32
+                            (remaining_w - gap * (flexible_count as f32 - 1.0)).max(0.0)
+                                / flexible_count as f32
                         } else {
                             0.0
                         };
@@ -457,7 +461,8 @@ fn layout_tree_with_viewport(
                             };
                             let child_h = if ch > 0.0 { ch.min(inner.h) } else { inner.h };
                             let child_rect = Rect::new(x, inner.y, child_w, child_h);
-                            nodes.push(layout_tree_with_viewport(ctx, child, child_rect, viewport)?);
+                            nodes
+                                .push(layout_tree_with_viewport(ctx, child, child_rect, viewport)?);
                             x += child_w + gap;
                         }
                     }
@@ -481,7 +486,8 @@ fn layout_tree_with_viewport(
                         let total_gap = gap * (total_children as f32 - 1.0);
                         let remaining_h = (inner.h - total_gap - fixed_h).max(0.0);
                         let flexible_h = if flexible_count > 0 {
-                            (remaining_h - gap * (flexible_count as f32 - 1.0)).max(0.0) / flexible_count as f32
+                            (remaining_h - gap * (flexible_count as f32 - 1.0)).max(0.0)
+                                / flexible_count as f32
                         } else {
                             0.0
                         };
@@ -496,7 +502,8 @@ fn layout_tree_with_viewport(
                                 flexible_h
                             };
                             let child_rect = Rect::new(inner.x, y, child_w, child_h);
-                            nodes.push(layout_tree_with_viewport(ctx, child, child_rect, viewport)?);
+                            nodes
+                                .push(layout_tree_with_viewport(ctx, child, child_rect, viewport)?);
                             y += child_h + gap;
                         }
                     }
@@ -504,17 +511,32 @@ fn layout_tree_with_viewport(
                 }
                 LayoutKind::Grid => {
                     let mut nodes = Vec::new();
-                    let columns_str = get_prop_string(ctx, props, "columns").unwrap_or_else(|| "1fr".to_string());
+                    let columns_str =
+                        get_prop_string(ctx, props, "columns").unwrap_or_else(|| "1fr".to_string());
                     let col_specs = parse_grid_tracks(&columns_str);
                     if col_specs.is_empty() || children.is_empty() {
                     } else {
                         let num_cols = col_specs.len();
-                        let fixed_w: f32 = col_specs.iter().filter(|(_, fr)| !fr).map(|(v, _)| *v).sum();
-                        let fr_total: f32 = col_specs.iter().filter(|(_, fr)| *fr).map(|(v, _)| *v).sum();
+                        let fixed_w: f32 = col_specs
+                            .iter()
+                            .filter(|(_, fr)| !fr)
+                            .map(|(v, _)| *v)
+                            .sum();
+                        let fr_total: f32 = col_specs
+                            .iter()
+                            .filter(|(_, fr)| *fr)
+                            .map(|(v, _)| *v)
+                            .sum();
                         let remaining_w = (inner.w - fixed_w).max(0.0);
                         let col_widths: Vec<f32> = col_specs
                             .iter()
-                            .map(|(v, fr)| if *fr { remaining_w * v / fr_total.max(1.0) } else { *v })
+                            .map(|(v, fr)| {
+                                if *fr {
+                                    remaining_w * v / fr_total.max(1.0)
+                                } else {
+                                    *v
+                                }
+                            })
                             .collect();
                         let num_rows = (children.len() + num_cols - 1) / num_cols;
                         let row_h = if num_rows > 0 {
@@ -529,8 +551,10 @@ fn layout_tree_with_viewport(
                             let row = i / num_cols;
                             let col = i % num_cols;
                             let x = col_offsets[col];
-                            let child_rect = Rect::new(x, inner.y + row as f32 * row_h, col_widths[col], row_h);
-                            nodes.push(layout_tree_with_viewport(ctx, child, child_rect, viewport)?);
+                            let child_rect =
+                                Rect::new(x, inner.y + row as f32 * row_h, col_widths[col], row_h);
+                            nodes
+                                .push(layout_tree_with_viewport(ctx, child, child_rect, viewport)?);
                         }
                     }
                     nodes
@@ -539,19 +563,38 @@ fn layout_tree_with_viewport(
                     let mut nodes = Vec::new();
                     if children.is_empty() {
                     } else if children.len() == 1 {
-                        nodes.push(layout_tree_with_viewport(ctx, &children[0], inner, viewport)?);
+                        nodes.push(layout_tree_with_viewport(
+                            ctx,
+                            &children[0],
+                            inner,
+                            viewport,
+                        )?);
                     } else {
-                        nodes.push(layout_tree_with_viewport(ctx, &children[0], inner, viewport)?);
+                        nodes.push(layout_tree_with_viewport(
+                            ctx,
+                            &children[0],
+                            inner,
+                            viewport,
+                        )?);
                         let content_w = (inner.w * 0.8).min(400.0);
                         let content_h = (inner.h * 0.6).min(300.0);
                         let cx = inner.x + (inner.w - content_w) / 2.0;
                         let cy = inner.y + (inner.h - content_h) / 2.0;
                         let content_rect = Rect::new(cx, cy, content_w, content_h);
-                        nodes.push(layout_tree_with_viewport(ctx, &children[1], content_rect, viewport)?);
+                        nodes.push(layout_tree_with_viewport(
+                            ctx,
+                            &children[1],
+                            content_rect,
+                            viewport,
+                        )?);
                     }
                     nodes
                 }
-                LayoutKind::Stack | LayoutKind::Center | LayoutKind::Box | LayoutKind::Button | LayoutKind::Input => {
+                LayoutKind::Stack
+                | LayoutKind::Center
+                | LayoutKind::Box
+                | LayoutKind::Button
+                | LayoutKind::Input => {
                     let mut nodes = Vec::new();
                     for child in children {
                         let r = if layout_kind == LayoutKind::Center && children.len() == 1 {
@@ -585,7 +628,11 @@ fn layout_tree_with_viewport(
                 on_click,
                 href,
                 name,
-                aspect_ratio: if aspect_ratio > 0.0 { Some(aspect_ratio) } else { None },
+                aspect_ratio: if aspect_ratio > 0.0 {
+                    Some(aspect_ratio)
+                } else {
+                    None
+                },
                 children: child_nodes,
             })
         }
@@ -596,10 +643,9 @@ fn layout_tree_with_viewport(
             span,
             ..
         } => {
-            let comp = ctx
-                .components
-                .get(callee)
-                .ok_or_else(|| NewtError::semantic(*span, format!("unknown component '{}'", callee)))?;
+            let comp = ctx.components.get(callee).ok_or_else(|| {
+                NewtError::semantic(*span, format!("unknown component '{}'", callee))
+            })?;
             let body = if let Some(ref slots) = slot_args {
                 crate::ast::substitute_slots(&comp.body, slots)
             } else {
@@ -634,11 +680,17 @@ fn layout_tree_with_viewport(
             };
             layout_tree_with_viewport(ctx, branch, rect, viewport)
         }
-        Expr::For { var, iter, body, span, .. } => {
+        Expr::For {
+            var,
+            iter,
+            body,
+            span,
+            ..
+        } => {
             let iter_val = eval_expr(ctx, iter)?;
-            let arr = iter_val.as_array().map_err(|_| {
-                NewtError::semantic(*span, "for loop expects an array or range(n)")
-            })?;
+            let arr = iter_val
+                .as_array()
+                .map_err(|_| NewtError::semantic(*span, "for loop expects an array or range(n)"))?;
             let mut child_nodes = Vec::new();
             let n = arr.len();
             if n == 0 {
@@ -653,7 +705,12 @@ fn layout_tree_with_viewport(
                 };
                 new_ctx.variables.insert(var.clone(), val.clone());
                 let child_rect = Rect::new(rect.x, y, rect.w, inner_h);
-                child_nodes.push(layout_tree_with_viewport(&new_ctx, body.as_ref(), child_rect, viewport)?);
+                child_nodes.push(layout_tree_with_viewport(
+                    &new_ctx,
+                    body.as_ref(),
+                    child_rect,
+                    viewport,
+                )?);
                 y += inner_h;
             }
             let mut node = LayoutNode::empty(LayoutKind::Column, rect);
@@ -692,7 +749,9 @@ fn layout_tree_with_viewport(
             for s in stmts {
                 if let Stmt::Expr(e) = s {
                     let child_rect = Rect::new(rect.x, y, rect.w, inner_h);
-                    child_nodes.push(layout_tree_with_viewport(&block_ctx, e, child_rect, viewport)?);
+                    child_nodes.push(layout_tree_with_viewport(
+                        &block_ctx, e, child_rect, viewport,
+                    )?);
                     y += inner_h;
                 }
             }

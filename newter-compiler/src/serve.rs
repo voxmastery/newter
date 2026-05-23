@@ -3,8 +3,8 @@
 //! `cargo run -p newter-compiler -- serve path/to/file.newt`
 //! Opens http://localhost:3333 with the canvas IDE.
 
-use crate::{compile_with_state, get_screen, screen_names, value_to_json, Source};
 use crate::value::{eval_expr, EvalContext, Value};
+use crate::{compile_with_state, get_screen, screen_names, value_to_json, Source};
 use axum::{
     extract::ws::{Message, WebSocket, WebSocketUpgrade},
     extract::{Query, State},
@@ -12,8 +12,8 @@ use axum::{
     routing::get,
     Router,
 };
+use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use serde::Deserialize;
-use notify::{RecommendedWatcher, RecursiveMode, Watcher, Event, EventKind};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -41,10 +41,11 @@ fn compile_to_json(
     state_overrides: &HashMap<String, Value>,
 ) -> Result<(String, HashMap<String, Value>), String> {
     let path_obj = path.map(std::path::Path::new);
-    let (program, layout, effective_state) = compile_with_state(source, path_obj, screen_name, state_overrides).map_err(|e| {
-        let src = Source::new(source.to_string(), path.map(String::from));
-        crate::format_error(&src, &e)
-    })?;
+    let (program, layout, effective_state) =
+        compile_with_state(source, path_obj, screen_name, state_overrides).map_err(|e| {
+            let src = Source::new(source.to_string(), path.map(String::from));
+            crate::format_error(&src, &e)
+        })?;
     let screens = screen_names(&program);
     let screen = get_screen(&program, screen_name).expect("compile guarantees a screen");
 
@@ -156,13 +157,26 @@ fn evaluate_state_action(
 }
 
 /// Start the canvas IDE server.
-pub async fn serve(file_path: PathBuf, port: u16, host: String, screen_name: Option<String>) -> anyhow::Result<()> {
+pub async fn serve(
+    file_path: PathBuf,
+    port: u16,
+    host: String,
+    screen_name: Option<String>,
+) -> anyhow::Result<()> {
     let source_code = std::fs::read_to_string(&file_path)?;
     let path_str = file_path.to_str().map(|s| s.to_string());
 
-    let (layout_json, initial_state) = match compile_to_json(&source_code, path_str.as_deref(), screen_name.as_deref(), &HashMap::new()) {
+    let (layout_json, initial_state) = match compile_to_json(
+        &source_code,
+        path_str.as_deref(),
+        screen_name.as_deref(),
+        &HashMap::new(),
+    ) {
         Ok((j, s)) => (j, s),
-        Err(e) => (serde_json::json!({ "type": "error", "message": e }).to_string(), HashMap::new()),
+        Err(e) => (
+            serde_json::json!({ "type": "error", "message": e }).to_string(),
+            HashMap::new(),
+        ),
     };
 
     let (tx, _rx) = broadcast::channel::<String>(64);
@@ -183,10 +197,15 @@ pub async fn serve(file_path: PathBuf, port: u16, host: String, screen_name: Opt
         let rt = tokio::runtime::Handle::current();
         let (notify_tx, notify_rx) = std::sync::mpsc::channel::<notify::Result<Event>>();
         let mut watcher = RecommendedWatcher::new(
-            move |res| { let _ = notify_tx.send(res); },
+            move |res| {
+                let _ = notify_tx.send(res);
+            },
             notify::Config::default(),
-        ).expect("watcher");
-        watcher.watch(watch_path.as_ref(), RecursiveMode::NonRecursive).expect("watch");
+        )
+        .expect("watcher");
+        watcher
+            .watch(watch_path.as_ref(), RecursiveMode::NonRecursive)
+            .expect("watch");
 
         loop {
             match notify_rx.recv() {
@@ -198,12 +217,19 @@ pub async fn serve(file_path: PathBuf, port: u16, host: String, screen_name: Opt
                             let screen = watch_state.default_screen.as_deref();
                             // Preserve current state on file save
                             let overrides = watch_state.current_state.lock().unwrap().clone();
-                            let json = match compile_to_json(&new_source, path_str.as_deref(), screen, &overrides) {
+                            let json = match compile_to_json(
+                                &new_source,
+                                path_str.as_deref(),
+                                screen,
+                                &overrides,
+                            ) {
                                 Ok((j, new_state)) => {
                                     *watch_state.current_state.lock().unwrap() = new_state;
                                     j
                                 }
-                                Err(e) => serde_json::json!({ "type": "error", "message": e }).to_string(),
+                                Err(e) => {
+                                    serde_json::json!({ "type": "error", "message": e }).to_string()
+                                }
                             };
                             rt.block_on(async {
                                 *watch_state.source.write().await = new_source;
@@ -257,7 +283,10 @@ struct LayoutQuery {
 }
 
 /// Return layout JSON. ?screen=Name to get a specific screen (for multi-screen apps).
-async fn layout_handler(State(state): State<AppState>, Query(q): Query<LayoutQuery>) -> impl IntoResponse {
+async fn layout_handler(
+    State(state): State<AppState>,
+    Query(q): Query<LayoutQuery>,
+) -> impl IntoResponse {
     let json = if let Some(ref name) = q.screen {
         let src = state.source.read().await;
         let path_str = state.file_path.to_str().map(|s| s.to_string());
@@ -273,13 +302,14 @@ async fn layout_handler(State(state): State<AppState>, Query(q): Query<LayoutQue
 }
 
 /// Compile source posted from the editor. Optional JSON body: { "code": "...", "screen": "Name" }.
-async fn compile_handler(
-    State(state): State<AppState>,
-    body: String,
-) -> impl IntoResponse {
+async fn compile_handler(State(state): State<AppState>, body: String) -> impl IntoResponse {
     let path_str = state.file_path.to_str().map(|s| s.to_string());
     let (code, screen) = if let Ok(v) = serde_json::from_str::<serde_json::Value>(&body) {
-        let code = v.get("code").and_then(|c| c.as_str()).unwrap_or(body.as_str()).to_string();
+        let code = v
+            .get("code")
+            .and_then(|c| c.as_str())
+            .unwrap_or(body.as_str())
+            .to_string();
         let screen = v.get("screen").and_then(|s| s.as_str()).map(String::from);
         (code, screen.or(state.default_screen.clone()))
     } else {
@@ -287,7 +317,12 @@ async fn compile_handler(
     };
     // Code changed — reset state
     *state.current_state.lock().unwrap() = HashMap::new();
-    let json = match compile_to_json(&code, path_str.as_deref(), screen.as_deref(), &HashMap::new()) {
+    let json = match compile_to_json(
+        &code,
+        path_str.as_deref(),
+        screen.as_deref(),
+        &HashMap::new(),
+    ) {
         Ok((j, new_state)) => {
             *state.current_state.lock().unwrap() = new_state;
             j
@@ -314,7 +349,9 @@ async fn handle_ws(mut socket: WebSocket, state: AppState) {
     // Send current source + filename
     {
         let src = state.source.read().await;
-        let filename = state.file_path.file_name()
+        let filename = state
+            .file_path
+            .file_name()
             .and_then(|f| f.to_str())
             .unwrap_or("untitled.newt");
         let msg = serde_json::json!({

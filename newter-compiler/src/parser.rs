@@ -32,7 +32,9 @@ impl<'a> Parser<'a> {
     }
 
     fn current(&self) -> &Token {
-        self.tokens.get(self.index).unwrap_or_else(|| self.tokens.last().unwrap())
+        self.tokens
+            .get(self.index)
+            .unwrap_or_else(|| self.tokens.last().unwrap())
     }
 
     fn advance(&mut self) -> Token {
@@ -131,7 +133,11 @@ impl<'a> Parser<'a> {
             );
             let err = if let TokenKind::Ident(ref s) = cur.kind {
                 if let Some(suggestion) = closest_top_level_keyword(s) {
-                    NewtError::parse_with_suggestion(cur.span, msg, format!("did you mean `{}`?", suggestion))
+                    NewtError::parse_with_suggestion(
+                        cur.span,
+                        msg,
+                        format!("did you mean `{}`?", suggestion),
+                    )
                 } else {
                     NewtError::parse(cur.span, msg)
                 }
@@ -149,7 +155,10 @@ impl<'a> Parser<'a> {
         loop {
             match self.current().kind {
                 TokenKind::Eof => break,
-                TokenKind::LeftBrace => { depth += 1; self.advance(); }
+                TokenKind::LeftBrace => {
+                    depth += 1;
+                    self.advance();
+                }
                 TokenKind::RightBrace => {
                     if depth > 0 {
                         depth -= 1;
@@ -162,11 +171,24 @@ impl<'a> Parser<'a> {
                         self.advance();
                     }
                 }
-                TokenKind::Semicolon if depth == 0 => { self.advance(); break; }
-                TokenKind::Let | TokenKind::Component | TokenKind::Screen
-                | TokenKind::Theme | TokenKind::Import | TokenKind::Use
-                | TokenKind::State if depth == 0 => break,
-                _ => { self.advance(); }
+                TokenKind::Semicolon if depth == 0 => {
+                    self.advance();
+                    break;
+                }
+                TokenKind::Let
+                | TokenKind::Component
+                | TokenKind::Screen
+                | TokenKind::Theme
+                | TokenKind::Import
+                | TokenKind::Use
+                | TokenKind::State
+                    if depth == 0 =>
+                {
+                    break
+                }
+                _ => {
+                    self.advance();
+                }
             }
         }
     }
@@ -176,7 +198,12 @@ impl<'a> Parser<'a> {
         self.expect(TokenKind::Import)?;
         let path = match &self.current().kind {
             TokenKind::String(s) => s.clone(),
-            _ => return Err(NewtError::parse(self.current().span, "import expects a string path")),
+            _ => {
+                return Err(NewtError::parse(
+                    self.current().span,
+                    "import expects a string path",
+                ))
+            }
         };
         self.advance();
         self.expect(TokenKind::Semicolon)?;
@@ -228,7 +255,11 @@ impl<'a> Parser<'a> {
         self.expect(TokenKind::Eq)?;
         let initial_value = self.parse_expr()?;
         self.expect(TokenKind::Semicolon)?;
-        Ok(StateVarDecl { name, initial_value, span })
+        Ok(StateVarDecl {
+            name,
+            initial_value,
+            span,
+        })
     }
 
     fn parse_component(&mut self) -> Result<ComponentDecl, NewtError> {
@@ -253,7 +284,12 @@ impl<'a> Parser<'a> {
         self.expect(TokenKind::LeftBrace)?;
         let body = self.parse_expr()?;
         self.expect(TokenKind::RightBrace)?;
-        Ok(ComponentDecl { name, params, body, span })
+        Ok(ComponentDecl {
+            name,
+            params,
+            body,
+            span,
+        })
     }
 
     /// Parse block body (after opening {): exprs until }, return Block. No leading {.
@@ -568,35 +604,41 @@ impl<'a> Parser<'a> {
                 self.expect(TokenKind::LeftBrace)?;
                 let body = Box::new(self.parse_expr()?);
                 self.expect(TokenKind::RightBrace)?;
-                return Ok(Expr::For { var, iter, body, span });
+                return Ok(Expr::For {
+                    var,
+                    iter,
+                    body,
+                    span,
+                });
             }
             TokenKind::Ident(_) => {
                 let name = self.expect_ident()?;
                 if self.at(TokenKind::LeftParen) {
                     self.advance();
-                    let (args, slot_args) = if !self.at(TokenKind::RightParen) && self.at_ident_then_colon() {
-                        let mut slot_args = Vec::new();
-                        while !self.at(TokenKind::RightParen) && !self.at(TokenKind::Eof) {
-                            let slot_name = self.expect_ident()?;
-                            self.expect(TokenKind::Colon)?;
-                            let e = self.parse_expr()?;
-                            slot_args.push((slot_name, e));
-                            if self.at(TokenKind::Comma) {
-                                self.advance();
+                    let (args, slot_args) =
+                        if !self.at(TokenKind::RightParen) && self.at_ident_then_colon() {
+                            let mut slot_args = Vec::new();
+                            while !self.at(TokenKind::RightParen) && !self.at(TokenKind::Eof) {
+                                let slot_name = self.expect_ident()?;
+                                self.expect(TokenKind::Colon)?;
+                                let e = self.parse_expr()?;
+                                slot_args.push((slot_name, e));
+                                if self.at(TokenKind::Comma) {
+                                    self.advance();
+                                }
                             }
-                        }
-                        (Vec::new(), Some(slot_args))
-                    } else {
-                        let mut args = Vec::new();
-                        if !self.at(TokenKind::RightParen) {
-                            args.push(self.parse_expr()?);
-                            while self.at(TokenKind::Comma) {
-                                self.advance();
+                            (Vec::new(), Some(slot_args))
+                        } else {
+                            let mut args = Vec::new();
+                            if !self.at(TokenKind::RightParen) {
                                 args.push(self.parse_expr()?);
+                                while self.at(TokenKind::Comma) {
+                                    self.advance();
+                                    args.push(self.parse_expr()?);
+                                }
                             }
-                        }
-                        (args, None)
-                    };
+                            (args, None)
+                        };
                     self.expect(TokenKind::RightParen)?;
                     return Ok(Expr::Call {
                         callee: name,
@@ -612,7 +654,11 @@ impl<'a> Parser<'a> {
                 if self.at(TokenKind::Eq) {
                     self.advance();
                     let value = self.parse_expr()?;
-                    return Ok(Expr::Assignment { name, value: Box::new(value), span });
+                    return Ok(Expr::Assignment {
+                        name,
+                        value: Box::new(value),
+                        span,
+                    });
                 }
                 return Ok(Expr::Ident(name, span));
             }
@@ -632,7 +678,11 @@ impl<'a> Parser<'a> {
         ))
     }
 
-    fn parse_element_props_and_children(&mut self, kind: ElementKind, span: Span) -> Result<Expr, NewtError> {
+    fn parse_element_props_and_children(
+        &mut self,
+        kind: ElementKind,
+        span: Span,
+    ) -> Result<Expr, NewtError> {
         let mut props = Vec::new();
         let mut children = Vec::new();
 
@@ -676,7 +726,7 @@ impl<'a> Parser<'a> {
                     self.parse_prop_or_semantic_tokens(&mut props)?;
                 }
                 self.expect(TokenKind::RightParen)?;
-            } else if self.at_ident_then_colon() || self.is_prop_keyword() || self.at_semantic_token() {
+            } else if self.at_ident_then_colon() || self.at_semantic_token() {
                 while !self.at(TokenKind::RightParen) && !self.at(TokenKind::Eof) {
                     self.parse_prop_or_semantic_tokens(&mut props)?;
                     if self.at(TokenKind::Comma) {
@@ -712,7 +762,7 @@ impl<'a> Parser<'a> {
             self.advance();
             let mut in_first_brace = true;
             while !self.at(TokenKind::RightBrace) && !self.at(TokenKind::Eof) {
-                if in_first_brace && (self.at_semantic_token() || self.at_ident_then_colon() || self.is_prop_keyword()) {
+                if in_first_brace && (self.at_semantic_token() || self.at_ident_then_colon()) {
                     self.parse_prop_or_semantic_tokens(&mut props)?;
                     if self.at(TokenKind::Comma) {
                         self.advance();
@@ -774,28 +824,10 @@ impl<'a> Parser<'a> {
                 }
             }
         }
-        Ok(Expr::InterpolatedString { parts: segments, span })
-    }
-
-    fn is_prop_keyword(&self) -> bool {
-        matches!(
-            self.current().kind,
-            TokenKind::Width
-                | TokenKind::Height
-                | TokenKind::Fill
-                | TokenKind::Stroke
-                | TokenKind::Radius
-                | TokenKind::Padding
-                | TokenKind::Gap
-                | TokenKind::Grow
-                | TokenKind::Shrink
-                | TokenKind::Align
-                | TokenKind::Justify
-                | TokenKind::Direction
-                | TokenKind::FontSize
-                | TokenKind::FontWeight
-                | TokenKind::Shadow
-        )
+        Ok(Expr::InterpolatedString {
+            parts: segments,
+            span,
+        })
     }
 
     /// Check if the current token is an identifier matching a semantic style token.
@@ -835,71 +867,8 @@ impl<'a> Parser<'a> {
                 self.advance();
                 PropName::Ident(n)
             }
-            TokenKind::Width => {
-                self.advance();
-                PropName::Width
-            }
-            TokenKind::Height => {
-                self.advance();
-                PropName::Height
-            }
-            TokenKind::Fill => {
-                self.advance();
-                PropName::Fill
-            }
-            TokenKind::Stroke => {
-                self.advance();
-                PropName::Stroke
-            }
-            TokenKind::Radius => {
-                self.advance();
-                PropName::Radius
-            }
-            TokenKind::Padding => {
-                self.advance();
-                PropName::Padding
-            }
-            TokenKind::Gap => {
-                self.advance();
-                PropName::Gap
-            }
-            TokenKind::Grow => {
-                self.advance();
-                PropName::Grow
-            }
-            TokenKind::Shrink => {
-                self.advance();
-                PropName::Shrink
-            }
-            TokenKind::Align => {
-                self.advance();
-                PropName::Align
-            }
-            TokenKind::Justify => {
-                self.advance();
-                PropName::Justify
-            }
-            TokenKind::Direction => {
-                self.advance();
-                PropName::Direction
-            }
-            TokenKind::FontSize => {
-                self.advance();
-                PropName::FontSize
-            }
-            TokenKind::FontWeight => {
-                self.advance();
-                PropName::FontWeight
-            }
-            TokenKind::Shadow => {
-                self.advance();
-                PropName::Shadow
-            }
             _ => {
-                return Err(NewtError::parse(
-                    span,
-                    "expected property name",
-                ));
+                return Err(NewtError::parse(span, "expected property name"));
             }
         };
         self.expect(TokenKind::Colon)?;
@@ -940,7 +909,15 @@ impl<'a> Parser<'a> {
 }
 
 /// Top-level keywords that can start a program item.
-const TOP_LEVEL_KEYWORDS: &[&str] = &["import", "theme", "use", "let", "state", "component", "screen"];
+const TOP_LEVEL_KEYWORDS: &[&str] = &[
+    "import",
+    "theme",
+    "use",
+    "let",
+    "state",
+    "component",
+    "screen",
+];
 
 fn levenshtein(a: &str, b: &str) -> usize {
     let a: Vec<char> = a.chars().collect();
@@ -972,84 +949,209 @@ fn semantic_token_props(name: &str) -> Option<Vec<(PropName, PropValue)>> {
     match name {
         // ── Color presets ──────────────────────────────────────────────
         "primary" => Some(vec![
-            (PropName::Fill, PropValue::Color { r: 124, g: 58, b: 237, a: 255 }),
-            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+            (
+                PropName::Ident("fill".into()),
+                PropValue::Color {
+                    r: 124,
+                    g: 58,
+                    b: 237,
+                    a: 255,
+                },
+            ),
+            (
+                PropName::Ident("textColor".into()),
+                PropValue::Color {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                },
+            ),
         ]),
         "secondary" => Some(vec![
-            (PropName::Fill, PropValue::Color { r: 107, g: 114, b: 128, a: 255 }),
-            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+            (
+                PropName::Ident("fill".into()),
+                PropValue::Color {
+                    r: 107,
+                    g: 114,
+                    b: 128,
+                    a: 255,
+                },
+            ),
+            (
+                PropName::Ident("textColor".into()),
+                PropValue::Color {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                },
+            ),
         ]),
         "danger" => Some(vec![
-            (PropName::Fill, PropValue::Color { r: 239, g: 68, b: 68, a: 255 }),
-            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+            (
+                PropName::Ident("fill".into()),
+                PropValue::Color {
+                    r: 239,
+                    g: 68,
+                    b: 68,
+                    a: 255,
+                },
+            ),
+            (
+                PropName::Ident("textColor".into()),
+                PropValue::Color {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                },
+            ),
         ]),
         "success" => Some(vec![
-            (PropName::Fill, PropValue::Color { r: 16, g: 185, b: 129, a: 255 }),
-            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+            (
+                PropName::Ident("fill".into()),
+                PropValue::Color {
+                    r: 16,
+                    g: 185,
+                    b: 129,
+                    a: 255,
+                },
+            ),
+            (
+                PropName::Ident("textColor".into()),
+                PropValue::Color {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                },
+            ),
         ]),
         "warning" => Some(vec![
-            (PropName::Fill, PropValue::Color { r: 245, g: 158, b: 11, a: 255 }),
-            (PropName::Ident("textColor".into()), PropValue::Color { r: 255, g: 255, b: 255, a: 255 }),
+            (
+                PropName::Ident("fill".into()),
+                PropValue::Color {
+                    r: 245,
+                    g: 158,
+                    b: 11,
+                    a: 255,
+                },
+            ),
+            (
+                PropName::Ident("textColor".into()),
+                PropValue::Color {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                },
+            ),
         ]),
         "muted" => Some(vec![
-            (PropName::Fill, PropValue::Color { r: 243, g: 244, b: 246, a: 255 }),
-            (PropName::Ident("textColor".into()), PropValue::Color { r: 107, g: 114, b: 128, a: 255 }),
+            (
+                PropName::Ident("fill".into()),
+                PropValue::Color {
+                    r: 243,
+                    g: 244,
+                    b: 246,
+                    a: 255,
+                },
+            ),
+            (
+                PropName::Ident("textColor".into()),
+                PropValue::Color {
+                    r: 107,
+                    g: 114,
+                    b: 128,
+                    a: 255,
+                },
+            ),
         ]),
         "ghost" => Some(vec![
-            (PropName::Fill, PropValue::Color { r: 0, g: 0, b: 0, a: 0 }),
-            (PropName::Stroke, PropValue::Color { r: 229, g: 231, b: 235, a: 255 }),
+            (
+                PropName::Ident("fill".into()),
+                PropValue::Color {
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                    a: 0,
+                },
+            ),
+            (
+                PropName::Ident("stroke".into()),
+                PropValue::Color {
+                    r: 229,
+                    g: 231,
+                    b: 235,
+                    a: 255,
+                },
+            ),
         ]),
 
         // ── Typography presets ─────────────────────────────────────────
-        "bold" => Some(vec![
-            (PropName::FontWeight, PropValue::String("700".into())),
-        ]),
-        "semibold" => Some(vec![
-            (PropName::FontWeight, PropValue::String("600".into())),
-        ]),
+        "bold" => Some(vec![(
+            PropName::Ident("fontWeight".into()),
+            PropValue::String("700".into()),
+        )]),
+        "semibold" => Some(vec![(
+            PropName::Ident("fontWeight".into()),
+            PropValue::String("600".into()),
+        )]),
         "heading" => Some(vec![
-            (PropName::FontSize, PropValue::Number(24.0)),
-            (PropName::FontWeight, PropValue::String("700".into())),
+            (PropName::Ident("fontSize".into()), PropValue::Number(24.0)),
+            (
+                PropName::Ident("fontWeight".into()),
+                PropValue::String("700".into()),
+            ),
         ]),
         "subheading" => Some(vec![
-            (PropName::FontSize, PropValue::Number(18.0)),
-            (PropName::FontWeight, PropValue::String("600".into())),
+            (PropName::Ident("fontSize".into()), PropValue::Number(18.0)),
+            (
+                PropName::Ident("fontWeight".into()),
+                PropValue::String("600".into()),
+            ),
         ]),
-        "caption" => Some(vec![
-            (PropName::FontSize, PropValue::Number(12.0)),
-        ]),
-        "small" => Some(vec![
-            (PropName::FontSize, PropValue::Number(14.0)),
-        ]),
+        "caption" => Some(vec![(
+            PropName::Ident("fontSize".into()),
+            PropValue::Number(12.0),
+        )]),
+        "small" => Some(vec![(
+            PropName::Ident("fontSize".into()),
+            PropValue::Number(14.0),
+        )]),
 
         // ── Size presets ───────────────────────────────────────────────
         "compact" => Some(vec![
-            (PropName::Padding, PropValue::Number(8.0)),
-            (PropName::Radius, PropValue::Number(4.0)),
+            (PropName::Ident("padding".into()), PropValue::Number(8.0)),
+            (PropName::Ident("radius".into()), PropValue::Number(4.0)),
         ]),
         "comfortable" => Some(vec![
-            (PropName::Padding, PropValue::Number(16.0)),
-            (PropName::Radius, PropValue::Number(8.0)),
+            (PropName::Ident("padding".into()), PropValue::Number(16.0)),
+            (PropName::Ident("radius".into()), PropValue::Number(8.0)),
         ]),
         "spacious" => Some(vec![
-            (PropName::Padding, PropValue::Number(24.0)),
-            (PropName::Radius, PropValue::Number(12.0)),
+            (PropName::Ident("padding".into()), PropValue::Number(24.0)),
+            (PropName::Ident("radius".into()), PropValue::Number(12.0)),
         ]),
-        "rounded" => Some(vec![
-            (PropName::Radius, PropValue::Number(999.0)),
-        ]),
+        "rounded" => Some(vec![(
+            PropName::Ident("radius".into()),
+            PropValue::Number(999.0),
+        )]),
         "pill" => Some(vec![
-            (PropName::Radius, PropValue::Number(999.0)),
-            (PropName::Padding, PropValue::Number(8.0)),
+            (PropName::Ident("radius".into()), PropValue::Number(999.0)),
+            (PropName::Ident("padding".into()), PropValue::Number(8.0)),
         ]),
 
         // ── Shadow presets ─────────────────────────────────────────────
-        "elevated" => Some(vec![
-            (PropName::Shadow, PropValue::Number(8.0)),
-        ]),
-        "floating" => Some(vec![
-            (PropName::Shadow, PropValue::Number(16.0)),
-        ]),
+        "elevated" => Some(vec![(
+            PropName::Ident("shadow".into()),
+            PropValue::Number(8.0),
+        )]),
+        "floating" => Some(vec![(
+            PropName::Ident("shadow".into()),
+            PropValue::Number(16.0),
+        )]),
 
         _ => None,
     }

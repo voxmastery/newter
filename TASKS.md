@@ -18,8 +18,8 @@ Prioritized, actionable tasks derived from the full codebase analysis. See **ANA
 
 | ID | Task | Location | Notes |
 |----|------|----------|-------|
-| P1-1 | **Support block-scoped variables** | `newter-compiler/src/value.rs` | In `Expr::Block`, for `Stmt::Let` mutate a local scope (e.g. clone context, insert, use for subsequent stmts and return value). |
-| P1-2 | **Handle `Expr::For` in layout and eval** | `newter-compiler/src/layout.rs`, `value.rs` | Currently `layout_tree` and `eval_expr` ignore `For`. Define semantics (e.g. iter as list of values); in layout, produce multiple child nodes; in eval, return last iteration or list. |
+| P1-1 | ~~**Support block-scoped variables**~~ | `newter-compiler/src/value.rs` | ✅ Done — `eval_expr` uses `block_ctx` for block scoping; `layout_tree` handles blocks with two-pass let/expr. |
+| P1-2 | ~~**Handle `Expr::For` in layout and eval**~~ | `newter-compiler/src/layout.rs`, `value.rs` | ✅ Done — `eval_expr` returns `Value::Array` for for-loops; `layout_tree` produces column children. |
 | P1-3 | **Use stroke in wgpu renderer** | `newter-compiler/src/renderer/` | Stroke is in `DrawRect` but shader ignores it. Option A: second pass or overlay for stroke quads; Option B: fragment shader that draws inner fill and outer stroke by distance. |
 | P1-4 | **True Stack/Center layout** | `newter-compiler/src/layout.rs` | Stack: children overlay same rect (already same rect). Center: size child by content (or min size), center within inner rect. May require two-pass layout (measure then place). |
 
@@ -29,11 +29,11 @@ Prioritized, actionable tasks derived from the full codebase analysis. See **ANA
 
 | ID | Task | Location | Notes |
 |----|------|----------|-------|
-| P2-1 | **Add unit tests for lexer** | `newter-compiler/src/lexer.rs` | Tests for tokens: numbers, strings, hex colors, keywords, identifiers, comments, error cases (unterminated string, invalid hex). |
-| P2-2 | **Add unit tests for layout** | `newter-compiler/src/layout.rs` | Tests: row/column gap and padding, single child, multiple children; optional integration test with small AST. |
-| P2-3 | **Add unit tests for value (eval)** | `newter-compiler/src/value.rs` | Tests: literals, ident, binary ops, unary, if/else, component call with args; block with expr; undefined variable/component errors. |
-| P2-4 | **Remove or use dead parser prop keywords** | `newter-compiler/src/parser.rs`, `lexer.rs` | Either: (a) make lexer return `TokenKind::Width` etc. for prop names and keep parser keyword path, or (b) remove `is_prop_keyword` and keyword arms in `parse_prop` and rely only on `Ident`. |
-| P2-5 | **Optional: remove unused `glam`** | `newter-compiler/Cargo.toml` | If no plan to use it, drop dependency; or use for Rect/vec2 in layout and renderer for clarity. |
+| P2-1 | ~~**Add unit tests for lexer**~~ | `newter-compiler/src/lib.rs` | ✅ Done — 20+ tests covering numbers, strings, hex colors, keywords, identifiers, delimiters, operators, comments, interpolation, spans, error cases. |
+| P2-2 | ~~**Add unit tests for layout**~~ | `newter-compiler/src/lib.rs` | ✅ Done — 20+ tests covering row/column gap, grid, stack, padding, fixed width/height, fill/stroke/radius, for-loops, if/else, components, visibility. |
+| P2-3 | ~~**Add unit tests for value (eval)**~~ | `newter-compiler/src/lib.rs` | ✅ Done — 20+ tests covering binary/unary ops, comparisons, booleans, modulo, division, variable ordering, range(), arrays, themes, undefined variable errors, value serialization. |
+| P2-4 | ~~**Remove or use dead parser prop keywords**~~ | `newter-compiler/src/parser.rs`, `lexer.rs`, `ast.rs`, `layout.rs` | ✅ Done — removed `TokenKind::Width`…`Shadow` (never constructed), `is_prop_keyword()`, dead `parse_prop` arms, dead `PropName` variants. All prop names now flow through `PropName::Ident`. |
+| P2-5 | ~~**Optional: remove unused `glam`**~~ | `newter-compiler/Cargo.toml` | ✅ Already not present — `glam` is not in the current Cargo.toml. |
 
 ---
 
