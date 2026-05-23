@@ -159,17 +159,15 @@ impl<'a> Parser<'a> {
                     depth += 1;
                     self.advance();
                 }
-                TokenKind::RightBrace => {
-                    if depth > 0 {
-                        depth -= 1;
-                        self.advance();
-                        if depth == 0 {
-                            // Finished skipping a balanced block — ready for next top-level item
-                            break;
-                        }
-                    } else {
-                        self.advance();
+                TokenKind::RightBrace if depth > 0 => {
+                    depth -= 1;
+                    self.advance();
+                    if depth == 0 {
+                        break;
                     }
+                }
+                TokenKind::RightBrace => {
+                    self.advance();
                 }
                 TokenKind::Semicolon if depth == 0 => {
                     self.advance();

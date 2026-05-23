@@ -232,8 +232,8 @@ fn run_watch(
     }
     println!("Watching {} (Ctrl+C to stop)", path.display());
     loop {
-        if rx.recv().is_ok() {
-            if run_build(
+        if rx.recv().is_ok()
+            && run_build(
                 path.clone(),
                 html,
                 json,
@@ -241,9 +241,8 @@ fn run_watch(
                 output.clone(),
                 screen.clone(),
             ) == ExitCode::SUCCESS
-            {
-                println!("Build ok");
-            }
+        {
+            println!("Build ok");
         }
     }
 }
@@ -285,11 +284,7 @@ screen Main {
             .and_then(|p| p.to_str().map(String::from)),
     );
 
-    if let Err(e) = compile(
-        &source_code,
-        source_path.as_ref().map(|p| p.as_path()),
-        screen.as_deref(),
-    ) {
+    if let Err(e) = compile(&source_code, source_path.as_deref(), screen.as_deref()) {
         eprintln!("{}", format_error(&source, &e));
         return ExitCode::from(1);
     }

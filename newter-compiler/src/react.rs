@@ -214,8 +214,8 @@ fn convert_onclick(expr: &str, state_vars: &[(String, String)]) -> String {
             if is_state {
                 let capitalized = format!("{}{}", &lhs[..1].to_uppercase(), &lhs[1..]);
                 // Handle negation: !varName
-                if rhs.starts_with('!') {
-                    result.push(format!("set{}(!{})", capitalized, &rhs[1..]));
+                if let Some(stripped) = rhs.strip_prefix('!') {
+                    result.push(format!("set{}(!{})", capitalized, stripped));
                 } else {
                     result.push(format!("set{}({})", capitalized, rhs));
                 }

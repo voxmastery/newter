@@ -36,7 +36,7 @@ pub fn layout_to_html(
         for (name, value) in vars.iter() {
             out.push_str(&format!("--{}:{};", name.replace(' ', "-"), value));
         }
-        out.push_str("}");
+        out.push('}');
     }
     out.push_str("*{margin:0;box-sizing:border-box;}");
     out.push_str("body{margin:0;background:#f9fafb;font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}");
@@ -188,7 +188,7 @@ pub fn layout_to_reactive_html(
         for (name, value) in vars.iter() {
             out.push_str(&format!("--{}:{};", name.replace(' ', "-"), value));
         }
-        out.push_str("}");
+        out.push('}');
     }
     out.push_str("*{margin:0;box-sizing:border-box;}");
     out.push_str("body{margin:0;background:#f9fafb;font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}");

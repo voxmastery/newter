@@ -150,8 +150,8 @@ fn parse_grid_tracks(s: &str) -> Vec<(f32, bool)> {
         if part.is_empty() {
             continue;
         }
-        if part.ends_with("fr") {
-            let v: f32 = part[..part.len() - 2].trim().parse().unwrap_or(1.0);
+        if let Some(stripped) = part.strip_suffix("fr") {
+            let v: f32 = stripped.trim().parse().unwrap_or(1.0);
             out.push((v.max(0.0), true));
         } else if let Ok(v) = part.parse::<f32>() {
             out.push((v.max(0.0), false));
@@ -538,7 +538,7 @@ fn layout_tree_with_viewport(
                                 }
                             })
                             .collect();
-                        let num_rows = (children.len() + num_cols - 1) / num_cols;
+                        let num_rows = children.len().div_ceil(num_cols);
                         let row_h = if num_rows > 0 {
                             (inner.h / num_rows as f32).max(0.0)
                         } else {
@@ -597,12 +597,7 @@ fn layout_tree_with_viewport(
                 | LayoutKind::Input => {
                     let mut nodes = Vec::new();
                     for child in children {
-                        let r = if layout_kind == LayoutKind::Center && children.len() == 1 {
-                            inner
-                        } else {
-                            inner
-                        };
-                        nodes.push(layout_tree_with_viewport(ctx, child, r, viewport)?);
+                        nodes.push(layout_tree_with_viewport(ctx, child, inner, viewport)?);
                     }
                     nodes
                 }

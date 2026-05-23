@@ -47,7 +47,7 @@ impl App {
             log::error!("No source code to parse");
             return;
         }
-        let path = self.source_path.as_ref().map(|p| p.as_path());
+        let path = self.source_path.as_deref();
         match compile(source, path, self.screen_name.as_deref()) {
             Ok((program, _layout)) => {
                 self.program = Some(program);
@@ -84,6 +84,7 @@ impl App {
         self.root_layout = root_layout;
     }
 
+    #[allow(clippy::ptr_arg)]
     fn start_file_watcher(&mut self, path: &PathBuf) {
         use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
         let (tx, rx) = mpsc::channel();

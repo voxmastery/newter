@@ -96,7 +96,7 @@ fn evaluate_state_action(
 ) -> Result<HashMap<String, Value>, String> {
     let path_obj = path.map(std::path::Path::new);
     let trimmed = source.trim();
-    let program = crate::parse(trimmed, path.map(|s| s)).map_err(|e| format!("{:?}", e))?;
+    let program = crate::parse(trimmed, path).map_err(|e| format!("{:?}", e))?;
     let program = if let Some(p) = path_obj {
         let base = p.parent().unwrap_or_else(|| std::path::Path::new("."));
         crate::resolve_imports(program, base).map_err(|e| format!("{:?}", e))?

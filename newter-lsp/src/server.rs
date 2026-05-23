@@ -20,6 +20,7 @@ pub struct Backend {
 
 #[derive(Debug, Clone)]
 struct DocumentState {
+    #[allow(dead_code)]
     version: i32,
     text: String,
 }
@@ -34,7 +35,7 @@ impl Backend {
 
     fn diagnostics_for(&self, uri: &Url, text: &str, _version: i32) -> Vec<Diagnostic> {
         let path = uri.to_file_path().ok();
-        let path_ref = path.as_ref().map(|p| p.as_path());
+        let path_ref = path.as_deref();
         let errors = check_all(text, path_ref);
         errors.into_iter().map(error_to_diagnostic).collect()
     }
@@ -46,8 +47,8 @@ fn error_to_diagnostic(err: NewtError) -> Diagnostic {
         | NewtError::Parse { span, message, .. }
         | NewtError::Semantic { span, message, .. } => {
             let start = Position {
-                line: span.line.saturating_sub(1) as u32,
-                character: span.column.saturating_sub(1) as u32,
+                line: span.line.saturating_sub(1),
+                character: span.column.saturating_sub(1),
             };
             let end_len = (span.end - span.start).min(1) as u32;
             let end = Position {
@@ -218,7 +219,7 @@ impl LanguageServer for Backend {
             .map(|d| d.text.clone())
             .unwrap_or_default();
         let path = uri.to_file_path().ok();
-        let path_ref = path.as_ref().map(|p| p.as_path());
+        let path_ref = path.as_deref();
         let offset = offset_from_position(&text, position);
 
         let tokens = match newter_compiler::tokenize(&text) {
@@ -345,7 +346,7 @@ impl LanguageServer for Backend {
             .map(|d| d.text.clone())
             .unwrap_or_default();
         let path = uri.to_file_path().ok();
-        let path_ref = path.as_ref().map(|p| p.as_path());
+        let path_ref = path.as_deref();
         let offset = offset_from_position(&text, position);
 
         let tokens = match newter_compiler::tokenize(&text) {
@@ -432,7 +433,7 @@ impl LanguageServer for Backend {
             .map(|d| d.text.clone())
             .unwrap_or_default();
         let path = uri.to_file_path().ok();
-        let path_ref = path.as_ref().map(|p| p.as_path());
+        let path_ref = path.as_deref();
         let offset = offset_from_position(&text, position);
 
         let tokens = match newter_compiler::tokenize(&text) {
@@ -537,6 +538,7 @@ fn get_program(text: &str, path: Option<&std::path::Path>) -> Option<newter_comp
 }
 
 /// Find token at offset: (current token containing offset, prefix start, prev token, prev_prev token).
+#[allow(clippy::type_complexity)]
 fn token_at_offset(
     tokens: &[(newter_compiler::Span, newter_compiler::TokenCategory)],
     offset: usize,

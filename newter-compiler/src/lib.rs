@@ -308,7 +308,7 @@ pub fn screen_names(program: &Program) -> Vec<String> {
 pub fn get_screen<'a>(program: &'a Program, name: Option<&str>) -> Option<&'a ScreenDecl> {
     for item in &program.items {
         if let ProgramItem::Screen(s) = item {
-            if name.map_or(true, |n| s.name == n) {
+            if name.is_none_or(|n| s.name == n) {
                 return Some(s);
             }
         }

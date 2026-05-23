@@ -280,7 +280,7 @@ pub fn eval_expr(ctx: &EvalContext, expr: &Expr) -> Result<Value, NewtError> {
         } => {
             if callee == "range" && args.len() == 1 && slot_args.is_none() {
                 let n = eval_expr(ctx, &args[0])?.as_number()? as i64;
-                let n = n.max(0).min(MAX_RANGE_SIZE) as usize;
+                let n = n.clamp(0, MAX_RANGE_SIZE) as usize;
                 return Ok(Value::Array(
                     (0..n).map(|i| Value::Number(i as f64)).collect(),
                 ));
