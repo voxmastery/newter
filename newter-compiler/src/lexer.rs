@@ -118,23 +118,6 @@ pub enum TokenKind {
     CommandPalette,
     Splitter,
 
-    // Property names (common)
-    Width,
-    Height,
-    Fill,
-    Stroke,
-    Radius,
-    Padding,
-    Gap,
-    Grow,
-    Shrink,
-    Align,
-    Justify,
-    Direction,
-    FontSize,
-    FontWeight,
-    Shadow,
-
     // Delimiters
     LeftBrace,
     RightBrace,
@@ -149,7 +132,7 @@ pub enum TokenKind {
     Arrow, // ->
 
     // Operators
-    Eq,       // =
+    Eq, // =
     Plus,
     Minus,
     Star,
@@ -262,21 +245,6 @@ impl fmt::Display for TokenKind {
             TokenKind::TreeView => write!(f, "treeView"),
             TokenKind::CommandPalette => write!(f, "commandPalette"),
             TokenKind::Splitter => write!(f, "splitter"),
-            TokenKind::Width => write!(f, "width"),
-            TokenKind::Height => write!(f, "height"),
-            TokenKind::Fill => write!(f, "fill"),
-            TokenKind::Stroke => write!(f, "stroke"),
-            TokenKind::Radius => write!(f, "radius"),
-            TokenKind::Padding => write!(f, "padding"),
-            TokenKind::Gap => write!(f, "gap"),
-            TokenKind::Grow => write!(f, "grow"),
-            TokenKind::Shrink => write!(f, "shrink"),
-            TokenKind::Align => write!(f, "align"),
-            TokenKind::Justify => write!(f, "justify"),
-            TokenKind::Direction => write!(f, "direction"),
-            TokenKind::FontSize => write!(f, "fontSize"),
-            TokenKind::FontWeight => write!(f, "fontWeight"),
-            TokenKind::Shadow => write!(f, "shadow"),
             TokenKind::LeftBrace => write!(f, "{{"),
             TokenKind::RightBrace => write!(f, "}}"),
             TokenKind::LeftParen => write!(f, "("),
@@ -329,32 +297,90 @@ impl TokenKind {
             TokenKind::Ident(_) => TokenCategory::Ident,
             TokenKind::True | TokenKind::False => TokenCategory::Ident,
             TokenKind::HexColor(_, _, _, _) => TokenCategory::Color,
-            TokenKind::Let | TokenKind::State | TokenKind::Component | TokenKind::Screen | TokenKind::If
-            | TokenKind::Else | TokenKind::For | TokenKind::In | TokenKind::Theme
-            | TokenKind::Use | TokenKind::Import => TokenCategory::Keyword,
-            TokenKind::Header | TokenKind::Footer | TokenKind::Container | TokenKind::Sidebar
-            | TokenKind::Section | TokenKind::Box | TokenKind::Text | TokenKind::Row
-            | TokenKind::Column | TokenKind::Grid | TokenKind::Stack | TokenKind::Center
-            | TokenKind::Spacer | TokenKind::Image | TokenKind::Button | TokenKind::Input
-            | TokenKind::Card | TokenKind::Widget => TokenCategory::Keyword,
-            TokenKind::Accordion | TokenKind::Bento | TokenKind::Breadcrumb | TokenKind::Hamburger
-            | TokenKind::Kebab | TokenKind::Meatballs | TokenKind::Doner | TokenKind::Tabs
-            | TokenKind::Pagination | TokenKind::LinkList | TokenKind::Nav | TokenKind::Password
-            | TokenKind::Search | TokenKind::Checkbox | TokenKind::Radio | TokenKind::Dropdown
-            | TokenKind::Combobox | TokenKind::Multiselect | TokenKind::DatePicker | TokenKind::Picker
-            | TokenKind::Slider | TokenKind::Stepper | TokenKind::Toggle | TokenKind::Form
-            | TokenKind::Modal | TokenKind::ConfirmDialog | TokenKind::Toast | TokenKind::Notification
-            | TokenKind::Alert | TokenKind::MessageBox | TokenKind::Tooltip | TokenKind::Loader
-            | TokenKind::ProgressBar | TokenKind::Badge | TokenKind::Icon | TokenKind::Tag
-            | TokenKind::Comment | TokenKind::Feed | TokenKind::Carousel | TokenKind::Chart
-            | TokenKind::Table | TokenKind::Avatar | TokenKind::Skeleton | TokenKind::Drawer
-            | TokenKind::Select | TokenKind::Textarea | TokenKind::Popover | TokenKind::Separator
-            | TokenKind::Timeline | TokenKind::Rating | TokenKind::FileUpload | TokenKind::ColorPicker
-            | TokenKind::TreeView | TokenKind::CommandPalette | TokenKind::Splitter => TokenCategory::Keyword,
-            TokenKind::Width | TokenKind::Height | TokenKind::Fill | TokenKind::Stroke
-            | TokenKind::Radius | TokenKind::Padding | TokenKind::Gap | TokenKind::Grow
-            | TokenKind::Shrink | TokenKind::Align | TokenKind::Justify | TokenKind::Direction
-            | TokenKind::FontSize | TokenKind::FontWeight | TokenKind::Shadow => TokenCategory::Ident,
+            TokenKind::Let
+            | TokenKind::State
+            | TokenKind::Component
+            | TokenKind::Screen
+            | TokenKind::If
+            | TokenKind::Else
+            | TokenKind::For
+            | TokenKind::In
+            | TokenKind::Theme
+            | TokenKind::Use
+            | TokenKind::Import => TokenCategory::Keyword,
+            TokenKind::Header
+            | TokenKind::Footer
+            | TokenKind::Container
+            | TokenKind::Sidebar
+            | TokenKind::Section
+            | TokenKind::Box
+            | TokenKind::Text
+            | TokenKind::Row
+            | TokenKind::Column
+            | TokenKind::Grid
+            | TokenKind::Stack
+            | TokenKind::Center
+            | TokenKind::Spacer
+            | TokenKind::Image
+            | TokenKind::Button
+            | TokenKind::Input
+            | TokenKind::Card
+            | TokenKind::Widget => TokenCategory::Keyword,
+            TokenKind::Accordion
+            | TokenKind::Bento
+            | TokenKind::Breadcrumb
+            | TokenKind::Hamburger
+            | TokenKind::Kebab
+            | TokenKind::Meatballs
+            | TokenKind::Doner
+            | TokenKind::Tabs
+            | TokenKind::Pagination
+            | TokenKind::LinkList
+            | TokenKind::Nav
+            | TokenKind::Password
+            | TokenKind::Search
+            | TokenKind::Checkbox
+            | TokenKind::Radio
+            | TokenKind::Dropdown
+            | TokenKind::Combobox
+            | TokenKind::Multiselect
+            | TokenKind::DatePicker
+            | TokenKind::Picker
+            | TokenKind::Slider
+            | TokenKind::Stepper
+            | TokenKind::Toggle
+            | TokenKind::Form
+            | TokenKind::Modal
+            | TokenKind::ConfirmDialog
+            | TokenKind::Toast
+            | TokenKind::Notification
+            | TokenKind::Alert
+            | TokenKind::MessageBox
+            | TokenKind::Tooltip
+            | TokenKind::Loader
+            | TokenKind::ProgressBar
+            | TokenKind::Badge
+            | TokenKind::Icon
+            | TokenKind::Tag
+            | TokenKind::Comment
+            | TokenKind::Feed
+            | TokenKind::Carousel
+            | TokenKind::Chart
+            | TokenKind::Table
+            | TokenKind::Avatar
+            | TokenKind::Skeleton
+            | TokenKind::Drawer
+            | TokenKind::Select
+            | TokenKind::Textarea
+            | TokenKind::Popover
+            | TokenKind::Separator
+            | TokenKind::Timeline
+            | TokenKind::Rating
+            | TokenKind::FileUpload
+            | TokenKind::ColorPicker
+            | TokenKind::TreeView
+            | TokenKind::CommandPalette
+            | TokenKind::Splitter => TokenCategory::Keyword,
             TokenKind::Eof => TokenCategory::Eof,
             _ => TokenCategory::Delimiter,
         }
@@ -499,7 +525,9 @@ impl<'a> Lexer<'a> {
                         while let Some(sc) = self.peek() {
                             expr_src.push(sc);
                             self.advance();
-                            if sc == '"' { break; }
+                            if sc == '"' {
+                                break;
+                            }
                             if sc == '\\' {
                                 if let Some(esc) = self.peek() {
                                     expr_src.push(esc);
@@ -685,9 +713,9 @@ impl<'a> Lexer<'a> {
             "treeView" => TokenKind::TreeView,
             "commandPalette" => TokenKind::CommandPalette,
             "splitter" => TokenKind::Splitter,
-            "width" | "height" | "fill" | "stroke" | "radius" | "padding" | "gap"
-            | "grow" | "shrink" | "align" | "justify" | "direction"
-            | "fontSize" | "fontWeight" | "shadow" => {
+            "width" | "height" | "fill" | "stroke" | "radius" | "padding" | "gap" | "grow"
+            | "shrink" | "align" | "justify" | "direction" | "fontSize" | "fontWeight"
+            | "shadow" => {
                 // Treat as identifier so "let padding = 24" works; parser uses Ident for prop names
                 TokenKind::Ident(s)
             }

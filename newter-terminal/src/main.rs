@@ -38,12 +38,15 @@ impl App {
         }
         if line.starts_with("run ") {
             let file = line.strip_prefix("run ").unwrap_or("").trim();
-            self.output.push(format!("  [run] newter-compiler {}", file));
+            self.output
+                .push(format!("  [run] newter-compiler {}", file));
             match Command::new("cargo")
                 .args(["run", "-p", "newter-compiler", "--release", "--", file])
                 .spawn()
             {
-                Ok(child) => self.output.push(format!("  started compiler (PID {})", child.id())),
+                Ok(child) => self
+                    .output
+                    .push(format!("  started compiler (PID {})", child.id())),
                 Err(e) => self.output.push(format!("  error: {}", e)),
             }
         } else {
@@ -67,7 +70,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     continue;
                 }
                 match key.code {
-                    KeyCode::Char('c') if key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) => {
+                    KeyCode::Char('c')
+                        if key
+                            .modifiers
+                            .contains(crossterm::event::KeyModifiers::CONTROL) =>
+                    {
                         app.exit = true;
                     }
                     KeyCode::Char('q') => app.exit = true,

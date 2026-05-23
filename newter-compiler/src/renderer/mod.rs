@@ -2,5 +2,5 @@
 
 mod state;
 
-pub use state::RendererState;
 pub use state::DrawRect;
+pub use state::RendererState;

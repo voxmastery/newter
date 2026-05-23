@@ -24,7 +24,11 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(source_path: Option<PathBuf>, source_code: String, screen_name: Option<String>) -> Self {
+    pub fn new(
+        source_path: Option<PathBuf>,
+        source_code: String,
+        screen_name: Option<String>,
+    ) -> Self {
         Self {
             window: None,
             renderer: None,
@@ -43,7 +47,7 @@ impl App {
             log::error!("No source code to parse");
             return;
         }
-        let path = self.source_path.as_ref().map(|p| p.as_path());
+        let path = self.source_path.as_deref();
         match compile(source, path, self.screen_name.as_deref()) {
             Ok((program, _layout)) => {
                 self.program = Some(program);
@@ -80,15 +84,18 @@ impl App {
         self.root_layout = root_layout;
     }
 
+    #[allow(clippy::ptr_arg)]
     fn start_file_watcher(&mut self, path: &PathBuf) {
-        use notify::{RecommendedWatcher, RecursiveMode, Watcher, EventKind};
+        use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
         let (tx, rx) = mpsc::channel();
         self.reload_rx = Some(rx);
         let path = path.clone();
         std::thread::spawn(move || {
             let (notify_tx, notify_rx) = mpsc::channel::<notify::Result<notify::Event>>();
             let mut watcher = match RecommendedWatcher::new(
-                move |res| { let _ = notify_tx.send(res); },
+                move |res| {
+                    let _ = notify_tx.send(res);
+                },
                 notify::Config::default(),
             ) {
                 Ok(w) => w,
@@ -160,12 +167,7 @@ impl ApplicationHandler for App {
         }
     }
 
-    fn window_event(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        _id: WindowId,
-        event: WindowEvent,
-    ) {
+    fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
                 event_loop.exit();
@@ -188,4 +190,3 @@ impl ApplicationHandler for App {
         }
     }
 }
-

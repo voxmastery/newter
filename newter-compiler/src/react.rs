@@ -17,15 +17,13 @@ fn hex(r: u8, g: u8, b: u8, a: u8) -> String {
     }
 }
 
+#[allow(dead_code)]
 fn escape_jsx(s: &str) -> String {
     s.replace('{', "\\{").replace('}', "\\}")
 }
 
 /// Generate a complete React component from a Newt program.
-pub fn layout_to_react(
-    program: &Program,
-    root: &LayoutNode,
-) -> String {
+pub fn layout_to_react(program: &Program, root: &LayoutNode) -> String {
     let mut out = String::new();
 
     // Collect state variables
@@ -103,7 +101,11 @@ fn emit_jsx(out: &mut String, n: &LayoutNode, depth: usize, state_vars: &[(Strin
     } else if let Some(ref text) = n.text {
         // Text content with possible interpolation
         let content = convert_interpolation(text, state_vars);
-        writeln!(out, "<{tag} style={{{{{style}}}}}{extra_props}>{content}</{tag}>").unwrap();
+        writeln!(
+            out,
+            "<{tag} style={{{{{style}}}}}{extra_props}>{content}</{tag}>"
+        )
+        .unwrap();
     } else {
         writeln!(out, "<{tag} style={{{{{style}}}}}{extra_props}>").unwrap();
         for child in &n.children {
@@ -212,8 +214,8 @@ fn convert_onclick(expr: &str, state_vars: &[(String, String)]) -> String {
             if is_state {
                 let capitalized = format!("{}{}", &lhs[..1].to_uppercase(), &lhs[1..]);
                 // Handle negation: !varName
-                if rhs.starts_with('!') {
-                    result.push(format!("set{}(!{})", capitalized, &rhs[1..]));
+                if let Some(stripped) = rhs.strip_prefix('!') {
+                    result.push(format!("set{}(!{})", capitalized, stripped));
                 } else {
                     result.push(format!("set{}({})", capitalized, rhs));
                 }
@@ -227,9 +229,7 @@ fn convert_onclick(expr: &str, state_vars: &[(String, String)]) -> String {
 /// e.g. "Count: {count}" -> `Count: ${count}`
 fn convert_interpolation(text: &str, _state_vars: &[(String, String)]) -> String {
     if text.contains('{') {
-        let converted = text
-            .replace('{', "${")
-            .replace("\\${", "{"); // Handle escaped braces
+        let converted = text.replace('{', "${").replace("\\${", "{"); // Handle escaped braces
         format!("`{}`", converted)
     } else {
         text.to_string()

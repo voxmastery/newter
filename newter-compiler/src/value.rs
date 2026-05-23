@@ -191,13 +191,14 @@ pub fn eval_expr(ctx: &EvalContext, expr: &Expr) -> Result<Value, NewtError> {
                 Ok(Value::Array(arr))
             }
         },
-        Expr::Ident(name, span) => {
-            ctx.variables
-                .get(name)
-                .cloned()
-                .ok_or_else(|| NewtError::semantic(*span, format!("undefined variable '{}'", name)))
-        }
-        Expr::Binary { left, op, right, .. } => {
+        Expr::Ident(name, span) => ctx
+            .variables
+            .get(name)
+            .cloned()
+            .ok_or_else(|| NewtError::semantic(*span, format!("undefined variable '{}'", name))),
+        Expr::Binary {
+            left, op, right, ..
+        } => {
             let l = eval_expr(ctx, left)?;
             let r = eval_expr(ctx, right)?;
             match op {
@@ -256,7 +257,12 @@ pub fn eval_expr(ctx: &EvalContext, expr: &Expr) -> Result<Value, NewtError> {
             }
             Ok(last)
         }
-        Expr::If { cond, then_branch, else_branch, .. } => {
+        Expr::If {
+            cond,
+            then_branch,
+            else_branch,
+            ..
+        } => {
             if eval_expr(ctx, cond)?.as_bool()? {
                 eval_expr(ctx, then_branch)
             } else if let Some(eb) = else_branch {
@@ -274,15 +280,14 @@ pub fn eval_expr(ctx: &EvalContext, expr: &Expr) -> Result<Value, NewtError> {
         } => {
             if callee == "range" && args.len() == 1 && slot_args.is_none() {
                 let n = eval_expr(ctx, &args[0])?.as_number()? as i64;
-                let n = n.max(0).min(MAX_RANGE_SIZE) as usize;
+                let n = n.clamp(0, MAX_RANGE_SIZE) as usize;
                 return Ok(Value::Array(
                     (0..n).map(|i| Value::Number(i as f64)).collect(),
                 ));
             }
-            let comp = ctx
-                .components
-                .get(callee)
-                .ok_or_else(|| NewtError::semantic(*span, format!("unknown component '{}'", callee)))?;
+            let comp = ctx.components.get(callee).ok_or_else(|| {
+                NewtError::semantic(*span, format!("unknown component '{}'", callee))
+            })?;
             let body = if let Some(ref slots) = slot_args {
                 crate::ast::substitute_slots(&comp.body, slots)
             } else {
@@ -303,19 +308,28 @@ pub fn eval_expr(ctx: &EvalContext, expr: &Expr) -> Result<Value, NewtError> {
             }
             eval_expr(&new_ctx, &body)
         }
-        Expr::For { var, iter, body, span, .. } => {
+        Expr::For {
+            var,
+            iter,
+            body,
+            span,
+            ..
+        } => {
             let iter_val = eval_expr(ctx, iter)?;
-            let arr = iter_val.as_array().map_err(|_| {
-                NewtError::semantic(*span, "for loop expects an array or range(n)")
-            })?;
-            let results: Result<Vec<Value>, NewtError> = arr.iter().map(|val| {
-                let mut loop_ctx = EvalContext {
-                    variables: ctx.variables.clone(),
-                    components: ctx.components.clone(),
-                };
-                loop_ctx.variables.insert(var.clone(), val.clone());
-                eval_expr(&loop_ctx, body)
-            }).collect();
+            let arr = iter_val
+                .as_array()
+                .map_err(|_| NewtError::semantic(*span, "for loop expects an array or range(n)"))?;
+            let results: Result<Vec<Value>, NewtError> = arr
+                .iter()
+                .map(|val| {
+                    let mut loop_ctx = EvalContext {
+                        variables: ctx.variables.clone(),
+                        components: ctx.components.clone(),
+                    };
+                    loop_ctx.variables.insert(var.clone(), val.clone());
+                    eval_expr(&loop_ctx, body)
+                })
+                .collect();
             Ok(Value::Array(results?))
         }
         Expr::InterpolatedString { parts, .. } => {

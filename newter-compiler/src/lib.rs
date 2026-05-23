@@ -14,15 +14,15 @@ pub mod renderer;
 pub mod serve;
 pub mod value;
 
+pub use app::App;
 pub use ast::{ImportDecl, Program, ProgramItem, ScreenDecl, ThemeDecl};
 pub use error::{format_error, NewtError, Source, Span};
 pub use html::{layout_to_html, layout_to_reactive_html};
-pub use react::layout_to_react;
 pub use layout::{layout_tree, LayoutNode, Rect};
 pub use lexer::{TokenCategory, TokenKind};
 pub use parser::Parser;
-pub use app::App;
-pub use value::{EvalContext, Value, value_to_json};
+pub use react::layout_to_react;
+pub use value::{value_to_json, EvalContext, Value};
 
 use std::collections::HashSet;
 
@@ -46,7 +46,10 @@ pub fn theme_css_vars(program: &Program) -> Vec<(String, String)> {
 }
 /// Returns true if the program contains any `state` declarations.
 pub fn has_state_vars(program: &Program) -> bool {
-    program.items.iter().any(|item| matches!(item, ProgramItem::StateDecl(_)))
+    program
+        .items
+        .iter()
+        .any(|item| matches!(item, ProgramItem::StateDecl(_)))
 }
 
 use std::path::{Path, PathBuf};
@@ -141,15 +144,17 @@ pub fn symbol_table(program: &Program) -> std::collections::HashMap<String, (Spa
     for item in &program.items {
         match item {
             ProgramItem::Variable(v) => {
-                map.insert(
-                    v.name.clone(),
-                    (v.span, SymbolKind::Variable),
-                );
+                map.insert(v.name.clone(), (v.span, SymbolKind::Variable));
             }
             ProgramItem::Component(c) => {
                 map.insert(
                     c.name.clone(),
-                    (c.span, SymbolKind::Component { params: c.params.clone() }),
+                    (
+                        c.span,
+                        SymbolKind::Component {
+                            params: c.params.clone(),
+                        },
+                    ),
                 );
             }
             ProgramItem::Screen(s) => {
@@ -170,30 +175,119 @@ pub fn symbol_table(program: &Program) -> std::collections::HashMap<String, (Spa
 /// Keywords for completion (top-level and expression context).
 pub fn completion_keywords() -> Vec<&'static str> {
     vec![
-        "screen", "let", "state", "component", "theme", "use", "import", "if", "for", "else", "in",
+        "screen",
+        "let",
+        "state",
+        "component",
+        "theme",
+        "use",
+        "import",
+        "if",
+        "for",
+        "else",
+        "in",
     ]
 }
 
 /// Element names for completion (row, column, card, button, etc.).
 pub fn completion_element_names() -> Vec<&'static str> {
     vec![
-        "header", "footer", "container", "sidebar", "section", "box", "text", "row", "column",
-        "grid", "stack", "center", "spacer", "image", "button", "input", "card", "widget",
-        "accordion", "bento", "breadcrumb", "hamburger", "kebab", "meatballs", "doner", "tabs",
-        "pagination", "linkList", "nav", "password", "search", "checkbox", "radio", "dropdown",
-        "combobox", "multiselect", "datePicker", "picker", "slider", "stepper", "toggle", "form",
-        "modal", "confirmDialog", "toast", "notification", "alert", "messageBox", "tooltip",
-        "loader", "progressBar", "badge", "icon", "tag", "comment", "feed", "carousel", "chart",
+        "header",
+        "footer",
+        "container",
+        "sidebar",
+        "section",
+        "box",
+        "text",
+        "row",
+        "column",
+        "grid",
+        "stack",
+        "center",
+        "spacer",
+        "image",
+        "button",
+        "input",
+        "card",
+        "widget",
+        "accordion",
+        "bento",
+        "breadcrumb",
+        "hamburger",
+        "kebab",
+        "meatballs",
+        "doner",
+        "tabs",
+        "pagination",
+        "linkList",
+        "nav",
+        "password",
+        "search",
+        "checkbox",
+        "radio",
+        "dropdown",
+        "combobox",
+        "multiselect",
+        "datePicker",
+        "picker",
+        "slider",
+        "stepper",
+        "toggle",
+        "form",
+        "modal",
+        "confirmDialog",
+        "toast",
+        "notification",
+        "alert",
+        "messageBox",
+        "tooltip",
+        "loader",
+        "progressBar",
+        "badge",
+        "icon",
+        "tag",
+        "comment",
+        "feed",
+        "carousel",
+        "chart",
     ]
 }
 
 /// Prop names valid for elements (layout, style, content).
 pub fn completion_prop_names() -> Vec<&'static str> {
     vec![
-        "width", "height", "fill", "stroke", "strokeWidth", "radius", "padding", "gap",
-        "grow", "shrink", "align", "justify", "direction", "fontSize", "fontWeight", "shadow",
-        "content", "minWidth", "maxWidth", "minHeight", "maxHeight", "transition", "aspectRatio",
-        "columns", "rows", "src", "role", "ariaLabel", "focusOrder", "onClick", "href", "name",
+        "width",
+        "height",
+        "fill",
+        "stroke",
+        "strokeWidth",
+        "radius",
+        "padding",
+        "gap",
+        "grow",
+        "shrink",
+        "align",
+        "justify",
+        "direction",
+        "fontSize",
+        "fontWeight",
+        "shadow",
+        "content",
+        "minWidth",
+        "maxWidth",
+        "minHeight",
+        "maxHeight",
+        "transition",
+        "aspectRatio",
+        "columns",
+        "rows",
+        "src",
+        "role",
+        "ariaLabel",
+        "focusOrder",
+        "onClick",
+        "href",
+        "name",
     ]
 }
 
@@ -214,7 +308,7 @@ pub fn screen_names(program: &Program) -> Vec<String> {
 pub fn get_screen<'a>(program: &'a Program, name: Option<&str>) -> Option<&'a ScreenDecl> {
     for item in &program.items {
         if let ProgramItem::Screen(s) = item {
-            if name.map_or(true, |n| s.name == n) {
+            if name.is_none_or(|n| s.name == n) {
                 return Some(s);
             }
         }
@@ -271,7 +365,14 @@ pub fn compile_with_state(
     path: Option<&std::path::Path>,
     screen_name: Option<&str>,
     state_overrides: &std::collections::HashMap<String, Value>,
-) -> Result<(Program, layout::LayoutNode, std::collections::HashMap<String, Value>), NewtError> {
+) -> Result<
+    (
+        Program,
+        layout::LayoutNode,
+        std::collections::HashMap<String, Value>,
+    ),
+    NewtError,
+> {
     let trimmed = source.trim();
     let path_str = path.and_then(|p| p.to_str());
     let program = parse(trimmed, path_str)?;
@@ -430,7 +531,10 @@ screen(Main) {
         let screen = screen.expect("one screen");
         let rect = crate::layout::Rect::new(0.0, 0.0, 960.0, 640.0);
         let layout = layout_tree(&ctx, &screen.body, rect).expect("layout");
-        assert!(!layout.children.is_empty(), "screen should have header + container");
+        assert!(
+            !layout.children.is_empty(),
+            "screen should have header + container"
+        );
     }
 
     // --- Lexer Tests ---
@@ -465,12 +569,25 @@ screen(Main) {
         let mut lexer = lexer::Lexer::new("-> == != <= >= && ||", None);
         let kinds: Vec<_> = std::iter::from_fn(|| {
             let t = lexer.next_token().ok()?;
-            if matches!(t.kind, TokenKind::Eof) { None } else { Some(t.kind) }
-        }).collect();
-        assert_eq!(kinds, vec![
-            TokenKind::Arrow, TokenKind::EqEq, TokenKind::NotEq,
-            TokenKind::Le, TokenKind::Ge, TokenKind::And, TokenKind::Or,
-        ]);
+            if matches!(t.kind, TokenKind::Eof) {
+                None
+            } else {
+                Some(t.kind)
+            }
+        })
+        .collect();
+        assert_eq!(
+            kinds,
+            vec![
+                TokenKind::Arrow,
+                TokenKind::EqEq,
+                TokenKind::NotEq,
+                TokenKind::Le,
+                TokenKind::Ge,
+                TokenKind::And,
+                TokenKind::Or,
+            ]
+        );
     }
 
     #[test]
@@ -608,7 +725,10 @@ screen Main { box { fill: bg } }
                     value: crate::ast::Expr::Literal(crate::ast::Literal::Number(42.0)),
                     span: Span::new(0, 0, 1, 1),
                 },
-                crate::ast::Stmt::Expr(crate::ast::Expr::Ident("x".to_string(), Span::new(0, 0, 1, 1))),
+                crate::ast::Stmt::Expr(crate::ast::Expr::Ident(
+                    "x".to_string(),
+                    Span::new(0, 0, 1, 1),
+                )),
             ],
             span: Span::new(0, 0, 1, 1),
         };
@@ -629,7 +749,10 @@ screen Main { box { fill: bg } }
                 slot_args: None,
                 span: Span::new(0, 0, 1, 1),
             }),
-            body: Box::new(crate::ast::Expr::Ident("i".to_string(), Span::new(0, 0, 1, 1))),
+            body: Box::new(crate::ast::Expr::Ident(
+                "i".to_string(),
+                Span::new(0, 0, 1, 1),
+            )),
             span: Span::new(0, 0, 1, 1),
         };
         let result = value::eval_expr(&ctx, &for_expr).unwrap();
@@ -655,7 +778,15 @@ screen Main { box {} }
 "#;
         let program = parse(source.trim(), None).unwrap();
         let ctx = EvalContext::from_program(&program);
-        assert!(matches!(ctx.variables.get("bg"), Some(Value::Color { r: 255, g: 255, b: 255, a: 255 })));
+        assert!(matches!(
+            ctx.variables.get("bg"),
+            Some(Value::Color {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: 255
+            })
+        ));
         assert!(ctx.variables.get("x").is_some());
     }
 
@@ -667,7 +798,9 @@ screen Main { box {} }
         let if_expr = crate::ast::Expr::If {
             cond: Box::new(crate::ast::Expr::Literal(crate::ast::Literal::Bool(false))),
             then_branch: Box::new(crate::ast::Expr::Literal(crate::ast::Literal::Number(1.0))),
-            else_branch: Some(Box::new(crate::ast::Expr::Literal(crate::ast::Literal::Number(2.0)))),
+            else_branch: Some(Box::new(crate::ast::Expr::Literal(
+                crate::ast::Literal::Number(2.0),
+            ))),
             span: Span::new(0, 0, 1, 1),
         };
         let result = value::eval_expr(&ctx, &if_expr).unwrap();
@@ -684,7 +817,10 @@ screen Main { box {} }
         assert_eq!(row.children.len(), 2);
         let w1 = row.children[0].rect.w;
         let w2 = row.children[1].rect.w;
-        assert!((w1 - w2).abs() < 1.0, "row children should have equal width");
+        assert!(
+            (w1 - w2).abs() < 1.0,
+            "row children should have equal width"
+        );
     }
 
     #[test]
@@ -695,7 +831,10 @@ screen Main { box {} }
         assert_eq!(col.children.len(), 3);
         let h1 = col.children[0].rect.h;
         let h2 = col.children[1].rect.h;
-        assert!((h1 - h2).abs() < 1.0, "column children should have equal height");
+        assert!(
+            (h1 - h2).abs() < 1.0,
+            "column children should have equal height"
+        );
     }
 
     #[test]
@@ -713,7 +852,10 @@ screen Main { box {} }
         let (_, layout) = compile(source, None, None).unwrap();
         let row = &layout.children[0];
         let w0 = row.children[0].rect.w;
-        assert!((w0 - 100.0).abs() < 1.0, "fixed width child should be 100px");
+        assert!(
+            (w0 - 100.0).abs() < 1.0,
+            "fixed width child should be 100px"
+        );
     }
 
     #[test]
@@ -745,7 +887,12 @@ screen Main { box {} }
         let source = "screen Main { text { content: \"Hello World\" } }";
         let (program, layout) = compile(source, None, None).unwrap();
         let vars = theme_css_vars(&program);
-        let html = layout_to_html(&layout, 960, 640, if vars.is_empty() { None } else { Some(&vars) });
+        let html = layout_to_html(
+            &layout,
+            960,
+            640,
+            if vars.is_empty() { None } else { Some(&vars) },
+        );
         assert!(html.contains("Hello World"));
         assert!(html.contains("<!DOCTYPE html>"));
     }
@@ -866,7 +1013,11 @@ screen Main { text("Hello {name}") }
 "#;
         let (_, layout) = compile(source.trim(), None, None).unwrap();
         let texts = collect_texts(&layout);
-        assert!(texts.iter().any(|t| t == "Hello World"), "texts: {:?}", texts);
+        assert!(
+            texts.iter().any(|t| t == "Hello World"),
+            "texts: {:?}",
+            texts
+        );
     }
 
     #[test]
@@ -885,7 +1036,11 @@ screen Main { text("total: {count * 2}") }
         let source = r#"screen Main { text("no braces here") }"#;
         let (_, layout) = compile(source, None, None).unwrap();
         let texts = collect_texts(&layout);
-        assert!(texts.iter().any(|t| t == "no braces here"), "texts: {:?}", texts);
+        assert!(
+            texts.iter().any(|t| t == "no braces here"),
+            "texts: {:?}",
+            texts
+        );
     }
 
     #[test]
@@ -893,7 +1048,11 @@ screen Main { text("total: {count * 2}") }
         let source = r#"screen Main { text("literal \{brace\}") }"#;
         let (_, layout) = compile(source, None, None).unwrap();
         let texts = collect_texts(&layout);
-        assert!(texts.iter().any(|t| t == "literal {brace}"), "texts: {:?}", texts);
+        assert!(
+            texts.iter().any(|t| t == "literal {brace}"),
+            "texts: {:?}",
+            texts
+        );
     }
 
     // --- State Management Tests ---
@@ -958,7 +1117,8 @@ screen Main { button("Add", onClick: { count = count + 1 }) }
 
     #[test]
     fn parse_assignment_expr() {
-        let source = "state count = 0; screen Main { button(\"Add\", onClick: { count = count + 1 }) }";
+        let source =
+            "state count = 0; screen Main { button(\"Add\", onClick: { count = count + 1 }) }";
         let program = parse(source, None).unwrap();
         // If it parses without error, the assignment was handled
         assert!(!program.items.is_empty());
@@ -987,7 +1147,10 @@ screen Main { button("Add", onClick: { count = count + 1 }) }
 "#;
         let (program, layout) = compile(source.trim(), None, None).unwrap();
         let html = layout_to_reactive_html(&program, &layout, 960, 640, None);
-        assert!(html.contains("data-onclick"), "should contain data-onclick attribute");
+        assert!(
+            html.contains("data-onclick"),
+            "should contain data-onclick attribute"
+        );
     }
 
     #[test]
@@ -998,8 +1161,14 @@ screen Main { text("Count: {count}") }
 "#;
         let (program, layout) = compile(source.trim(), None, None).unwrap();
         let html = layout_to_reactive_html(&program, &layout, 960, 640, None);
-        assert!(html.contains("data-content"), "should contain data-content attribute");
-        assert!(html.contains("Count: {count}"), "should contain template pattern");
+        assert!(
+            html.contains("data-content"),
+            "should contain data-content attribute"
+        );
+        assert!(
+            html.contains("Count: {count}"),
+            "should contain template pattern"
+        );
     }
 
     #[test]
@@ -1021,14 +1190,21 @@ screen Main { text("Count: {count}") }
             scren Other { }
         "#;
         let errors = check_all(src, None);
-        assert!(errors.len() >= 2, "should report multiple errors, got {}", errors.len());
+        assert!(
+            errors.len() >= 2,
+            "should report multiple errors, got {}",
+            errors.len()
+        );
     }
 
     #[test]
     fn test_single_error_backward_compat() {
         let src = "screan Main { }";
         let result = parse(src, None);
-        assert!(result.is_err(), "should still return Err for backward compat");
+        assert!(
+            result.is_err(),
+            "should still return Err for backward compat"
+        );
     }
 
     #[test]
@@ -1040,7 +1216,11 @@ screen Main { text("Count: {count}") }
         let result = parse_all(src.trim(), None);
         assert!(result.is_err());
         let errors = result.unwrap_err();
-        assert!(errors.len() >= 2, "parse_all should return multiple errors, got {}", errors.len());
+        assert!(
+            errors.len() >= 2,
+            "parse_all should return multiple errors, got {}",
+            errors.len()
+        );
     }
 
     #[test]
@@ -1054,5 +1234,717 @@ screen Main { text("Count: {count}") }
         // check_all should find the "screan" error but still be able to see "screen Main"
         let errors = check_all(src, None);
         assert!(!errors.is_empty(), "should find at least one error");
+    }
+
+    // =========================================================================
+    // Additional Lexer Tests
+    // =========================================================================
+
+    #[test]
+    fn lex_all_single_char_delimiters() {
+        let mut lexer = lexer::Lexer::new("{ } ( ) [ ] , . ; :", None);
+        let kinds: Vec<_> = std::iter::from_fn(|| {
+            let t = lexer.next_token().ok()?;
+            if matches!(t.kind, TokenKind::Eof) {
+                None
+            } else {
+                Some(t.kind)
+            }
+        })
+        .collect();
+        assert_eq!(
+            kinds,
+            vec![
+                TokenKind::LeftBrace,
+                TokenKind::RightBrace,
+                TokenKind::LeftParen,
+                TokenKind::RightParen,
+                TokenKind::LeftBracket,
+                TokenKind::RightBracket,
+                TokenKind::Comma,
+                TokenKind::Dot,
+                TokenKind::Semicolon,
+                TokenKind::Colon,
+            ]
+        );
+    }
+
+    #[test]
+    fn lex_single_char_operators() {
+        let mut lexer = lexer::Lexer::new("= + - * / % < > !", None);
+        let kinds: Vec<_> = std::iter::from_fn(|| {
+            let t = lexer.next_token().ok()?;
+            if matches!(t.kind, TokenKind::Eof) {
+                None
+            } else {
+                Some(t.kind)
+            }
+        })
+        .collect();
+        assert_eq!(
+            kinds,
+            vec![
+                TokenKind::Eq,
+                TokenKind::Plus,
+                TokenKind::Minus,
+                TokenKind::Star,
+                TokenKind::Slash,
+                TokenKind::Percent,
+                TokenKind::Lt,
+                TokenKind::Gt,
+                TokenKind::Not,
+            ]
+        );
+    }
+
+    #[test]
+    fn lex_element_keywords() {
+        let mut lexer =
+            lexer::Lexer::new("box text row column grid stack center button input", None);
+        let kinds: Vec<_> = std::iter::from_fn(|| {
+            let t = lexer.next_token().ok()?;
+            if matches!(t.kind, TokenKind::Eof) {
+                None
+            } else {
+                Some(t.kind)
+            }
+        })
+        .collect();
+        assert_eq!(
+            kinds,
+            vec![
+                TokenKind::Box,
+                TokenKind::Text,
+                TokenKind::Row,
+                TokenKind::Column,
+                TokenKind::Grid,
+                TokenKind::Stack,
+                TokenKind::Center,
+                TokenKind::Button,
+                TokenKind::Input,
+            ]
+        );
+    }
+
+    #[test]
+    fn lex_prop_names_as_identifiers() {
+        let cases = vec![
+            "width",
+            "height",
+            "fill",
+            "stroke",
+            "radius",
+            "padding",
+            "gap",
+            "fontSize",
+            "fontWeight",
+            "shadow",
+        ];
+        for name in cases {
+            let mut lexer = lexer::Lexer::new(name, None);
+            let t = lexer.next_token().unwrap();
+            assert!(
+                matches!(&t.kind, TokenKind::Ident(s) if s == name),
+                "expected Ident(\"{}\"), got {:?}",
+                name,
+                t.kind,
+            );
+        }
+    }
+
+    #[test]
+    fn lex_boolean_literals() {
+        let mut lexer = lexer::Lexer::new("true false", None);
+        let t1 = lexer.next_token().unwrap();
+        assert!(matches!(t1.kind, TokenKind::True));
+        let t2 = lexer.next_token().unwrap();
+        assert!(matches!(t2.kind, TokenKind::False));
+    }
+
+    #[test]
+    fn lex_integer_number() {
+        let mut lexer = lexer::Lexer::new("0", None);
+        let t = lexer.next_token().unwrap();
+        assert!(matches!(t.kind, TokenKind::Number(n) if n == 0.0));
+    }
+
+    #[test]
+    fn lex_string_escape_tab_and_return() {
+        let mut lexer = lexer::Lexer::new(r#""a\tb\rc""#, None);
+        let t = lexer.next_token().unwrap();
+        assert!(matches!(t.kind, TokenKind::String(ref s) if s == "a\tb\rc"));
+    }
+
+    #[test]
+    fn lex_string_escaped_quote() {
+        let mut lexer = lexer::Lexer::new(r#""say \"hi\"""#, None);
+        let t = lexer.next_token().unwrap();
+        assert!(matches!(t.kind, TokenKind::String(ref s) if s == "say \"hi\""));
+    }
+
+    #[test]
+    fn lex_interpolated_string() {
+        let mut lexer = lexer::Lexer::new(r#""hello {name}""#, None);
+        let t = lexer.next_token().unwrap();
+        if let TokenKind::InterpolatedString(parts) = &t.kind {
+            assert_eq!(parts.len(), 2);
+            assert!(matches!(&parts[0], lexer::InterpPart::Literal(s) if s == "hello "));
+            assert!(matches!(&parts[1], lexer::InterpPart::ExprSource(s) if s == "name"));
+        } else {
+            panic!("expected InterpolatedString, got {:?}", t.kind);
+        }
+    }
+
+    #[test]
+    fn lex_span_tracking() {
+        let mut lexer = lexer::Lexer::new("let x", None);
+        let t1 = lexer.next_token().unwrap();
+        assert_eq!(t1.span.line, 1);
+        assert_eq!(t1.span.column, 1);
+        let t2 = lexer.next_token().unwrap();
+        assert_eq!(t2.span.line, 1);
+        assert_eq!(t2.span.column, 5);
+    }
+
+    #[test]
+    fn lex_multiline_span() {
+        let mut lexer = lexer::Lexer::new("let\nx", None);
+        let _t1 = lexer.next_token().unwrap();
+        let t2 = lexer.next_token().unwrap();
+        assert_eq!(t2.span.line, 2);
+        assert_eq!(t2.span.column, 1);
+    }
+
+    #[test]
+    fn lex_unexpected_char_error() {
+        let mut lexer = lexer::Lexer::new("~", None);
+        let result = lexer.next_token();
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn lex_empty_input() {
+        let mut lexer = lexer::Lexer::new("", None);
+        let t = lexer.next_token().unwrap();
+        assert!(matches!(t.kind, TokenKind::Eof));
+    }
+
+    #[test]
+    fn lex_v2_elements() {
+        let cases = vec![
+            ("table", TokenKind::Table),
+            ("avatar", TokenKind::Avatar),
+            ("skeleton", TokenKind::Skeleton),
+            ("drawer", TokenKind::Drawer),
+            ("select", TokenKind::Select),
+            ("textarea", TokenKind::Textarea),
+            ("popover", TokenKind::Popover),
+            ("separator", TokenKind::Separator),
+        ];
+        for (src, expected_kind) in cases {
+            let mut lexer = lexer::Lexer::new(src, None);
+            let t = lexer.next_token().unwrap();
+            assert_eq!(
+                std::mem::discriminant(&t.kind),
+                std::mem::discriminant(&expected_kind),
+                "failed for '{}'",
+                src,
+            );
+        }
+    }
+
+    // =========================================================================
+    // Additional Layout Tests
+    // =========================================================================
+
+    #[test]
+    fn layout_row_with_gap() {
+        let source = "screen Main { row(gap: 10)(box {} box {}) }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let row = &layout.children[0];
+        assert_eq!(row.children.len(), 2);
+        let x1 = row.children[0].rect.x;
+        let w1 = row.children[0].rect.w;
+        let x2 = row.children[1].rect.x;
+        let gap = x2 - (x1 + w1);
+        assert!(
+            (gap - 10.0).abs() < 1.0,
+            "row gap should be ~10px, got {}",
+            gap
+        );
+    }
+
+    #[test]
+    fn layout_column_with_gap() {
+        let source = "screen Main { column(gap: 10)(box {} box {}) }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let col = &layout.children[0];
+        assert_eq!(col.children.len(), 2);
+        let y1 = col.children[0].rect.y;
+        let h1 = col.children[0].rect.h;
+        let y2 = col.children[1].rect.y;
+        let gap = y2 - (y1 + h1);
+        assert!(
+            (gap - 10.0).abs() < 1.0,
+            "column gap should be ~10px, got {}",
+            gap
+        );
+    }
+
+    #[test]
+    fn layout_grid_two_columns() {
+        let source = r#"screen Main { grid(columns: "1fr 1fr")(box {} box {} box {} box {}) }"#;
+        let (_, layout) = compile(source, None, None).unwrap();
+        let grid = &layout.children[0];
+        assert_eq!(grid.children.len(), 4);
+        let w0 = grid.children[0].rect.w;
+        let w1 = grid.children[1].rect.w;
+        assert!((w0 - w1).abs() < 1.0, "grid cols should have equal width");
+    }
+
+    #[test]
+    fn layout_stack_children_same_rect() {
+        let source = "screen Main { stack()(box {} box {}) }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let stack = &layout.children[0];
+        assert_eq!(stack.children.len(), 2);
+        let r0 = stack.children[0].rect;
+        let r1 = stack.children[1].rect;
+        assert!((r0.x - r1.x).abs() < 0.01);
+        assert!((r0.y - r1.y).abs() < 0.01);
+        assert!((r0.w - r1.w).abs() < 0.01);
+        assert!((r0.h - r1.h).abs() < 0.01);
+    }
+
+    #[test]
+    fn layout_text_node_has_content() {
+        let source = r#"screen Main { text("Hello") }"#;
+        let (_, layout) = compile(source, None, None).unwrap();
+        let text_node = &layout.children[0];
+        assert_eq!(text_node.text.as_deref(), Some("Hello"));
+    }
+
+    #[test]
+    fn layout_fill_color_propagates() {
+        let source = "screen Main { box(fill: #ff0000) {} }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let box_node = &layout.children[0];
+        assert_eq!(box_node.fill, Some((255, 0, 0, 255)));
+    }
+
+    #[test]
+    fn layout_stroke_color_propagates() {
+        let source = "screen Main { box(stroke: #00ff00) {} }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let box_node = &layout.children[0];
+        assert_eq!(box_node.stroke, Some((0, 255, 0, 255)));
+    }
+
+    #[test]
+    fn layout_radius_propagates() {
+        let source = "screen Main { box(radius: 12) {} }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let box_node = &layout.children[0];
+        assert!((box_node.radius - 12.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn layout_font_size_propagates() {
+        let source = r#"screen Main { text("Hi", fontSize: 32) }"#;
+        let (_, layout) = compile(source, None, None).unwrap();
+        let text_node = &layout.children[0];
+        assert!((text_node.font_size - 32.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn layout_nested_for_loop() {
+        let source =
+            "screen Main { column()(for i in range(3) { row()(for j in range(2) { box {} }) }) }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let col = &layout.children[0];
+        // Column has a for-loop node with 3 children
+        let for_node = &col.children[0];
+        assert_eq!(for_node.children.len(), 3);
+        // Each child is a row with a for-loop node containing 2 boxes
+        let inner_for = &for_node.children[0].children[0];
+        assert_eq!(inner_for.children.len(), 2);
+    }
+
+    #[test]
+    fn layout_if_true_branch() {
+        let source = "screen Main { if true { text(\"yes\") } else { text(\"no\") } }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let texts = collect_texts(&layout);
+        assert!(texts.contains(&"yes".to_string()));
+        assert!(!texts.contains(&"no".to_string()));
+    }
+
+    #[test]
+    fn layout_if_false_branch() {
+        let source = r#"screen Main { if false { text("yes") } else { text("no") } }"#;
+        let (_, layout) = compile(source, None, None).unwrap();
+        let texts = collect_texts(&layout);
+        assert!(!texts.contains(&"yes".to_string()));
+        assert!(texts.contains(&"no".to_string()));
+    }
+
+    #[test]
+    fn layout_empty_screen() {
+        let source = "screen Main { box {} }";
+        let result = compile(source, None, None);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn layout_fixed_height_child() {
+        let source = "screen Main { column(gap: 0)(box(height: 50) {} box {}) }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let col = &layout.children[0];
+        let h0 = col.children[0].rect.h;
+        assert!(
+            (h0 - 50.0).abs() < 1.0,
+            "fixed height child should be 50px, got {}",
+            h0
+        );
+    }
+
+    #[test]
+    fn layout_component_with_params() {
+        let source = r#"
+component Card(title) {
+    box { fill: #ffffff } { text { content: title } }
+}
+screen Main { Card("Hello") }
+"#;
+        let (_, layout) = compile(source.trim(), None, None).unwrap();
+        let texts = collect_texts(&layout);
+        assert!(texts.contains(&"Hello".to_string()));
+    }
+
+    #[test]
+    fn layout_max_width_visible() {
+        let source = "screen Main { box(maxWidth: 2000)(text(\"visible\")) }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let texts = collect_texts(&layout);
+        assert!(texts.contains(&"visible".to_string()));
+    }
+
+    // =========================================================================
+    // Additional Eval Tests
+    // =========================================================================
+
+    #[test]
+    fn eval_unary_negation() {
+        let source = "let x = -5; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        let val = ctx.variables.get("x").unwrap();
+        assert!(matches!(val, Value::Number(n) if (*n - -5.0).abs() < f64::EPSILON));
+    }
+
+    #[test]
+    fn eval_unary_not() {
+        let source = "let x = !true; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        assert!(matches!(ctx.variables.get("x"), Some(Value::Bool(false))));
+    }
+
+    #[test]
+    fn eval_string_variable() {
+        let source = r#"let name = "World"; screen Main { box {} }"#;
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        assert!(matches!(ctx.variables.get("name"), Some(Value::String(s)) if s == "World"));
+    }
+
+    #[test]
+    fn eval_color_variable() {
+        let source = "let c = #abcdef; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        assert!(matches!(
+            ctx.variables.get("c"),
+            Some(Value::Color {
+                r: 0xab,
+                g: 0xcd,
+                b: 0xef,
+                a: 255
+            })
+        ));
+    }
+
+    #[test]
+    fn eval_chained_arithmetic() {
+        let source = "let x = 2 + 3 * 4; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        let val = ctx.variables.get("x").unwrap();
+        // Parser should handle precedence: 2 + (3 * 4) = 14
+        assert!(matches!(val, Value::Number(n) if (*n - 14.0).abs() < f64::EPSILON));
+    }
+
+    #[test]
+    fn eval_modulo() {
+        let source = "let x = 10 % 3; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        let val = ctx.variables.get("x").unwrap();
+        assert!(matches!(val, Value::Number(n) if (*n - 1.0).abs() < f64::EPSILON));
+    }
+
+    #[test]
+    fn eval_boolean_and_or() {
+        let source = "let a = true && false; let b = true || false; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        assert!(matches!(ctx.variables.get("a"), Some(Value::Bool(false))));
+        assert!(matches!(ctx.variables.get("b"), Some(Value::Bool(true))));
+    }
+
+    #[test]
+    fn eval_ne_comparison() {
+        let source = "let x = 1 != 2; let y = 1 != 1; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        assert!(matches!(ctx.variables.get("x"), Some(Value::Bool(true))));
+        assert!(matches!(ctx.variables.get("y"), Some(Value::Bool(false))));
+    }
+
+    #[test]
+    fn eval_le_ge() {
+        let source = "let a = 3 <= 3; let b = 3 >= 4; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        assert!(matches!(ctx.variables.get("a"), Some(Value::Bool(true))));
+        assert!(matches!(ctx.variables.get("b"), Some(Value::Bool(false))));
+    }
+
+    #[test]
+    fn eval_division() {
+        let source = "let x = 10 / 4; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        let val = ctx.variables.get("x").unwrap();
+        assert!(matches!(val, Value::Number(n) if (*n - 2.5).abs() < f64::EPSILON));
+    }
+
+    #[test]
+    fn eval_multiple_variables_order() {
+        let source = "let a = 10; let b = a + 5; let c = b * 2; screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        assert!(
+            matches!(ctx.variables.get("c"), Some(Value::Number(n)) if (*n - 30.0).abs() < f64::EPSILON)
+        );
+    }
+
+    #[test]
+    fn eval_range_function() {
+        let source = "screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        let call_expr = crate::ast::Expr::Call {
+            callee: "range".to_string(),
+            args: vec![crate::ast::Expr::Literal(crate::ast::Literal::Number(5.0))],
+            slot_args: None,
+            span: Span::new(0, 0, 1, 1),
+        };
+        let result = value::eval_expr(&ctx, &call_expr).unwrap();
+        if let Value::Array(arr) = result {
+            assert_eq!(arr.len(), 5);
+            for (i, v) in arr.iter().enumerate() {
+                assert!(matches!(v, Value::Number(n) if (*n - i as f64).abs() < f64::EPSILON));
+            }
+        } else {
+            panic!("expected array from range()");
+        }
+    }
+
+    #[test]
+    fn eval_undefined_variable_error() {
+        let source = "screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        let expr = crate::ast::Expr::Ident("nonexistent".to_string(), Span::new(0, 0, 1, 1));
+        let result = value::eval_expr(&ctx, &expr);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn eval_theme_variable_override() {
+        let source = r#"
+let bg = #000000;
+theme Light { let bg = #ffffff; }
+use theme Light;
+screen Main { box {} }
+"#;
+        let program = parse(source.trim(), None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        // Theme should override the original variable
+        assert!(matches!(
+            ctx.variables.get("bg"),
+            Some(Value::Color {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: 255
+            })
+        ));
+    }
+
+    #[test]
+    fn eval_array_literal() {
+        let source = "screen Main { box {} }";
+        let program = parse(source, None).unwrap();
+        let ctx = EvalContext::from_program(&program);
+        let arr_expr = crate::ast::Expr::Literal(crate::ast::Literal::Array(vec![
+            crate::ast::Expr::Literal(crate::ast::Literal::Number(1.0)),
+            crate::ast::Expr::Literal(crate::ast::Literal::Number(2.0)),
+            crate::ast::Expr::Literal(crate::ast::Literal::Number(3.0)),
+        ]));
+        let result = value::eval_expr(&ctx, &arr_expr).unwrap();
+        if let Value::Array(arr) = result {
+            assert_eq!(arr.len(), 3);
+        } else {
+            panic!("expected array");
+        }
+    }
+
+    // =========================================================================
+    // Additional Parser Tests
+    // =========================================================================
+
+    #[test]
+    fn parse_import_statement() {
+        let source = r#"import "components.newt"; screen Main { box {} }"#;
+        let program = parse(source, None).unwrap();
+        assert!(matches!(&program.items[0], ProgramItem::Import(i) if i.path == "components.newt"));
+    }
+
+    #[test]
+    fn parse_semantic_token_primary() {
+        let source = "screen Main { button(\"Click\") primary }";
+        let result = parse(source, None);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn parse_nested_if_else() {
+        let source = "screen Main { if true { if false { box {} } else { text(\"inner\") } } }";
+        let result = parse(source, None);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn parse_paren_syntax() {
+        let source = "screen(Main) { column(gap: 16)(text(\"hi\") text(\"there\")) }";
+        let result = parse(source, None);
+        assert!(result.is_ok());
+    }
+
+    // =========================================================================
+    // Additional HTML Tests
+    // =========================================================================
+
+    #[test]
+    fn html_export_radius_style() {
+        let source = "screen Main { box(fill: #ff0000, radius: 12) {} }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let html = layout_to_html(&layout, 960, 640, None);
+        assert!(html.contains("border-radius"));
+    }
+
+    #[test]
+    fn html_export_stroke_style() {
+        let source = "screen Main { box(stroke: #333333) {} }";
+        let (_, layout) = compile(source, None, None).unwrap();
+        let html = layout_to_html(&layout, 960, 640, None);
+        assert!(html.contains("border"));
+    }
+
+    // =========================================================================
+    // Value Serialization Tests
+    // =========================================================================
+
+    #[test]
+    fn value_to_string_number_integer() {
+        let v = Value::Number(42.0);
+        assert_eq!(value::value_to_string(&v), "42");
+    }
+
+    #[test]
+    fn value_to_string_number_float() {
+        let v = Value::Number(3.14);
+        assert_eq!(value::value_to_string(&v), "3.14");
+    }
+
+    #[test]
+    fn value_to_string_bool() {
+        assert_eq!(value::value_to_string(&Value::Bool(true)), "true");
+        assert_eq!(value::value_to_string(&Value::Bool(false)), "false");
+    }
+
+    #[test]
+    fn value_to_string_color_opaque() {
+        let v = Value::Color {
+            r: 255,
+            g: 0,
+            b: 128,
+            a: 255,
+        };
+        assert_eq!(value::value_to_string(&v), "#ff0080");
+    }
+
+    #[test]
+    fn value_to_string_color_alpha() {
+        let v = Value::Color {
+            r: 255,
+            g: 0,
+            b: 128,
+            a: 128,
+        };
+        assert_eq!(value::value_to_string(&v), "#ff008080");
+    }
+
+    #[test]
+    fn value_to_json_roundtrip() {
+        let v = Value::Number(42.0);
+        let json = value::value_to_json(&v);
+        assert_eq!(json, serde_json::json!(42));
+
+        let v = Value::String("hello".into());
+        let json = value::value_to_json(&v);
+        assert_eq!(json, serde_json::json!("hello"));
+
+        let v = Value::Bool(true);
+        let json = value::value_to_json(&v);
+        assert_eq!(json, serde_json::json!(true));
+    }
+
+    // =========================================================================
+    // React Export Tests
+    // =========================================================================
+
+    #[test]
+    fn react_export_basic() {
+        let source = r#"screen Main { text("Hello React") }"#;
+        let (program, layout) = compile(source, None, None).unwrap();
+        let jsx = layout_to_react(&program, &layout);
+        assert!(jsx.contains("import React"));
+        assert!(jsx.contains("NewtApp"));
+        assert!(jsx.contains("Hello React"));
+    }
+
+    #[test]
+    fn react_export_with_state() {
+        let source = r#"
+state count = 0;
+screen Main { text("Count: {count}") }
+"#;
+        let (program, layout) = compile(source.trim(), None, None).unwrap();
+        let jsx = layout_to_react(&program, &layout);
+        assert!(jsx.contains("useState"));
+        assert!(jsx.contains("count"));
     }
 }

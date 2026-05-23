@@ -36,7 +36,7 @@ pub fn layout_to_html(
         for (name, value) in vars.iter() {
             out.push_str(&format!("--{}:{};", name.replace(' ', "-"), value));
         }
-        out.push_str("}");
+        out.push('}');
     }
     out.push_str("*{margin:0;box-sizing:border-box;}");
     out.push_str("body{margin:0;background:#f9fafb;font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}");
@@ -85,13 +85,7 @@ fn emit_node(out: &mut String, n: &LayoutNode) {
     write!(
         out,
         "<{} class=\"n\" style=\"left:{}px;top:{}px;width:{}px;height:{}px;{}\"{}>",
-        tag,
-        r.x as i32,
-        r.y as i32,
-        r.w as i32,
-        r.h as i32,
-        style,
-        attrs
+        tag, r.x as i32, r.y as i32, r.w as i32, r.h as i32, style, attrs
     )
     .unwrap();
 
@@ -135,7 +129,11 @@ fn node_style(n: &LayoutNode) -> String {
     if let Some(sh) = n.shadow {
         if sh > 0.0 {
             const SHADOW_SPREAD_MULTIPLIER: f32 = 1.5;
-            s.push_str(&format!("box-shadow:0 {}px {}px rgba(0,0,0,0.15);", sh as i32, (sh * SHADOW_SPREAD_MULTIPLIER) as i32));
+            s.push_str(&format!(
+                "box-shadow:0 {}px {}px rgba(0,0,0,0.15);",
+                sh as i32,
+                (sh * SHADOW_SPREAD_MULTIPLIER) as i32
+            ));
         }
     }
     if let Some(ms) = n.transition_ms {
@@ -161,7 +159,9 @@ fn collect_state_vars(program: &Program) -> Vec<(String, String)> {
                         format!("{}", n)
                     }
                 }
-                Ok(Value::String(s)) => format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\"")),
+                Ok(Value::String(s)) => {
+                    format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
+                }
                 Ok(Value::Bool(b)) => format!("{}", b),
                 Ok(Value::Color { r, g, b, a }) => format!("\"{}\"", hex(r, g, b, a)),
                 _ => "null".to_string(),
@@ -188,7 +188,7 @@ pub fn layout_to_reactive_html(
         for (name, value) in vars.iter() {
             out.push_str(&format!("--{}:{};", name.replace(' ', "-"), value));
         }
-        out.push_str("}");
+        out.push('}');
     }
     out.push_str("*{margin:0;box-sizing:border-box;}");
     out.push_str("body{margin:0;background:#f9fafb;font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}");
@@ -196,7 +196,9 @@ pub fn layout_to_reactive_html(
     out.push_str(".root{position:relative;width:100%;height:100vh;min-height:640px;}");
     out.push_str(".n{position:absolute;box-sizing:border-box;transition:transform 150ms ease,box-shadow 150ms ease,opacity 150ms ease;}");
     out.push_str("[data-onclick]{cursor:pointer;user-select:none;}");
-    out.push_str("[data-onclick]:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}");
+    out.push_str(
+        "[data-onclick]:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}",
+    );
     out.push_str("@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}");
     out.push_str(".n{animation:fadeIn 300ms ease-out both;}");
     out.push_str("</style></head><body><div id=\"_newt_root\" class=\"root\" style=\"width:");
@@ -254,12 +256,7 @@ fn emit_reactive_node(out: &mut String, n: &LayoutNode) {
     write!(
         out,
         "<div class=\"n\" style=\"left:{}px;top:{}px;width:{}px;height:{}px;{}\"{}>",
-        r.x as i32,
-        r.y as i32,
-        r.w as i32,
-        r.h as i32,
-        style,
-        attrs
+        r.x as i32, r.y as i32, r.w as i32, r.h as i32, style, attrs
     )
     .unwrap();
 

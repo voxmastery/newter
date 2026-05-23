@@ -247,31 +247,7 @@ pub struct Prop {
 #[derive(Debug, Clone)]
 pub enum PropName {
     Ident(String),
-    Width,
-    Height,
-    Fill,
-    Stroke,
-    Radius,
-    Padding,
-    Gap,
-    Grow,
-    Shrink,
-    Align,
-    Justify,
-    Direction,
-    FontSize,
-    FontWeight,
-    Shadow,
-    Src, // image src
-    Content, // text content
-    MinWidth,
-    MaxWidth,
-    MinHeight,
-    MaxHeight,
-    Transition,
-    Role,
-    AriaLabel,
-    FocusOrder,
+    Content, // text content (constructed by parser for positional string args)
 }
 
 #[derive(Debug, Clone)]
@@ -285,7 +261,11 @@ pub enum PropValue {
 #[derive(Debug, Clone)]
 pub enum Stmt {
     Expr(Expr),
-    Let { name: String, value: Expr, span: Span },
+    Let {
+        name: String,
+        value: Expr,
+        span: Span,
+    },
     StateDecl(StateVarDecl),
 }
 
@@ -407,7 +387,10 @@ fn substitute_slots_inner(expr: &Expr, map: &HashMap<String, Expr>) -> Expr {
             span,
         } => Expr::Call {
             callee: callee.clone(),
-            args: args.iter().map(|e| substitute_slots_inner(e, map)).collect(),
+            args: args
+                .iter()
+                .map(|e| substitute_slots_inner(e, map))
+                .collect(),
             slot_args: sa.clone(),
             span: *span,
         },

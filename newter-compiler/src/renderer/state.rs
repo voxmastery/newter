@@ -1,6 +1,6 @@
 //! wgpu state: device, queue, pipeline for drawing rectangles (and text when glyphon supports wgpu 22+).
 
-use crate::layout::{LayoutNode, LayoutKind};
+use crate::layout::{LayoutKind, LayoutNode};
 use bytemuck::{Pod, Zeroable};
 use winit::window::Window;
 
@@ -124,27 +124,38 @@ impl RendererState {
                             format: wgpu::VertexFormat::Float32x4,
                         },
                         wgpu::VertexAttribute {
-                            offset: (std::mem::size_of::<[f32; 2]>() + std::mem::size_of::<[f32; 4]>()) as u64,
+                            offset: (std::mem::size_of::<[f32; 2]>()
+                                + std::mem::size_of::<[f32; 4]>())
+                                as u64,
                             shader_location: 2,
                             format: wgpu::VertexFormat::Float32x4,
                         },
                         wgpu::VertexAttribute {
-                            offset: (std::mem::size_of::<[f32; 2]>() + std::mem::size_of::<[f32; 4]>() * 2) as u64,
+                            offset: (std::mem::size_of::<[f32; 2]>()
+                                + std::mem::size_of::<[f32; 4]>() * 2)
+                                as u64,
                             shader_location: 3,
                             format: wgpu::VertexFormat::Float32,
                         },
                         wgpu::VertexAttribute {
-                            offset: (std::mem::size_of::<[f32; 2]>() + std::mem::size_of::<[f32; 4]>() * 2 + 4) as u64,
+                            offset: (std::mem::size_of::<[f32; 2]>()
+                                + std::mem::size_of::<[f32; 4]>() * 2
+                                + 4) as u64,
                             shader_location: 4,
                             format: wgpu::VertexFormat::Float32x4,
                         },
                         wgpu::VertexAttribute {
-                            offset: (std::mem::size_of::<[f32; 2]>() + std::mem::size_of::<[f32; 4]>() * 3 + 4) as u64,
+                            offset: (std::mem::size_of::<[f32; 2]>()
+                                + std::mem::size_of::<[f32; 4]>() * 3
+                                + 4) as u64,
                             shader_location: 5,
                             format: wgpu::VertexFormat::Float32,
                         },
                         wgpu::VertexAttribute {
-                            offset: (std::mem::size_of::<[f32; 2]>() + std::mem::size_of::<[f32; 4]>() * 3 + 4 + 4) as u64,
+                            offset: (std::mem::size_of::<[f32; 2]>()
+                                + std::mem::size_of::<[f32; 4]>() * 3
+                                + 4
+                                + 4) as u64,
                             shader_location: 6,
                             format: wgpu::VertexFormat::Float32x2,
                         },
@@ -188,7 +199,8 @@ impl RendererState {
         let swash_cache = glyphon::SwashCache::new();
         let glyphon_cache = glyphon::Cache::new(&device);
         let glyphon_viewport = glyphon::Viewport::new(&device, &glyphon_cache);
-        let mut text_atlas = glyphon::TextAtlas::new(&device, &queue, &glyphon_cache, config.format);
+        let mut text_atlas =
+            glyphon::TextAtlas::new(&device, &queue, &glyphon_cache, config.format);
         let text_renderer = glyphon::TextRenderer::new(
             &mut text_atlas,
             &device,
@@ -267,11 +279,8 @@ impl RendererState {
         }
         self.vertex_count = vertices.len() as u32;
         if self.vertex_count > 0 {
-            self.queue.write_buffer(
-                &self.vertex_buffer,
-                0,
-                bytemuck::cast_slice(&vertices),
-            );
+            self.queue
+                .write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&vertices));
         }
 
         // 2. Collect text nodes
@@ -279,10 +288,13 @@ impl RendererState {
         collect_text_nodes(root, &mut text_nodes);
 
         // 3. Update glyphon viewport
-        self.glyphon_viewport.update(&self.queue, glyphon::Resolution {
-            width: viewport_w as u32,
-            height: viewport_h as u32,
-        });
+        self.glyphon_viewport.update(
+            &self.queue,
+            glyphon::Resolution {
+                width: viewport_w as u32,
+                height: viewport_h as u32,
+            },
+        );
 
         // 4. Create buffers for each text node
         let mut buffers: Vec<glyphon::Buffer> = Vec::new();
@@ -372,11 +384,9 @@ impl RendererState {
             pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             pass.draw(0..self.vertex_count, 0..1);
 
-            let _ = self.text_renderer.render(
-                &self.text_atlas,
-                &self.glyphon_viewport,
-                &mut pass,
-            );
+            let _ = self
+                .text_renderer
+                .render(&self.text_atlas, &self.glyphon_viewport, &mut pass);
         }
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
@@ -396,7 +406,8 @@ struct TextNode {
 
 fn collect_text_nodes(node: &LayoutNode, out: &mut Vec<TextNode>) {
     if let Some(ref text) = node.text {
-        let has_dark_bg = node.fill
+        let has_dark_bg = node
+            .fill
             .map(|(r, g, b, _)| (r as f32 * 0.299 + g as f32 * 0.587 + b as f32 * 0.114) < 128.0)
             .unwrap_or(false);
         out.push(TextNode {
@@ -418,14 +429,33 @@ fn collect_rects(node: &LayoutNode, _vw: f32, _vh: f32, out: &mut Vec<DrawRect>)
     let r = &node.rect;
     let fill = node
         .fill
-        .map(|(r, g, b, a)| [r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, a as f32 / 255.0])
+        .map(|(r, g, b, a)| {
+            [
+                r as f32 / 255.0,
+                g as f32 / 255.0,
+                b as f32 / 255.0,
+                a as f32 / 255.0,
+            ]
+        })
         .unwrap_or([0.9, 0.9, 0.9, 1.0]);
     let stroke = node.stroke.map(|(r, g, b, a)| {
-        [r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, a as f32 / 255.0]
+        [
+            r as f32 / 255.0,
+            g as f32 / 255.0,
+            b as f32 / 255.0,
+            a as f32 / 255.0,
+        ]
     });
     match node.kind {
-        LayoutKind::Box | LayoutKind::Row | LayoutKind::Column | LayoutKind::Grid | LayoutKind::Stack | LayoutKind::Center
-        | LayoutKind::Button | LayoutKind::Input | LayoutKind::Modal => {
+        LayoutKind::Box
+        | LayoutKind::Row
+        | LayoutKind::Column
+        | LayoutKind::Grid
+        | LayoutKind::Stack
+        | LayoutKind::Center
+        | LayoutKind::Button
+        | LayoutKind::Input
+        | LayoutKind::Modal => {
             out.push(DrawRect {
                 x: r.x,
                 y: r.y,

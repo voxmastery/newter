@@ -23,8 +23,7 @@ pub fn draw(frame: &mut Frame, app: &crate::App) {
     let area = frame.area();
 
     // Full-screen deep winter background.
-    let bg = Block::default()
-        .style(Style::default().bg(FrozenGlass::BG));
+    let bg = Block::default().style(Style::default().bg(FrozenGlass::BG));
     frame.render_widget(bg, area);
 
     // Main layout.
@@ -44,7 +43,11 @@ pub fn draw(frame: &mut Frame, app: &crate::App) {
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(FrozenGlass::BORDER))
-        .style(Style::default().bg(FrozenGlass::SURFACE).fg(FrozenGlass::TEXT));
+        .style(
+            Style::default()
+                .bg(FrozenGlass::SURFACE)
+                .fg(FrozenGlass::TEXT),
+        );
     frame.render_widget(nav_block, chunks[0]);
 
     let nav_inner = Rect {
@@ -56,26 +59,36 @@ pub fn draw(frame: &mut Frame, app: &crate::App) {
 
     let nav_cols = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Length(18), Constraint::Min(20), Constraint::Length(22)])
+        .constraints([
+            Constraint::Length(18),
+            Constraint::Min(20),
+            Constraint::Length(22),
+        ])
         .split(nav_inner);
 
     let logo = Paragraph::new(
-        Line::from(" newter.ice")
-            .style(Style::default().fg(FrozenGlass::ACCENT).add_modifier(Modifier::BOLD)),
+        Line::from(" newter.ice").style(
+            Style::default()
+                .fg(FrozenGlass::ACCENT)
+                .add_modifier(Modifier::BOLD),
+        ),
     )
     .alignment(Alignment::Left);
     frame.render_widget(logo, nav_cols[0]);
 
     let menu = Paragraph::new(
-        Line::from(" Pricing    Blog    About ")
-            .style(Style::default().fg(FrozenGlass::TEXT_DIM)),
+        Line::from(" Pricing    Blog    About ").style(Style::default().fg(FrozenGlass::TEXT_DIM)),
     )
     .alignment(Alignment::Center);
     frame.render_widget(menu, nav_cols[1]);
 
     let cta = Paragraph::new(
-        Line::from("  Download for Windows  ")
-            .style(Style::default().fg(FrozenGlass::BG).bg(FrozenGlass::ACCENT).add_modifier(Modifier::BOLD)),
+        Line::from("  Download for Windows  ").style(
+            Style::default()
+                .fg(FrozenGlass::BG)
+                .bg(FrozenGlass::ACCENT)
+                .add_modifier(Modifier::BOLD),
+        ),
     )
     .alignment(Alignment::Right);
     frame.render_widget(cta, nav_cols[2]);
@@ -85,7 +98,11 @@ pub fn draw(frame: &mut Frame, app: &crate::App) {
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(FrozenGlass::BORDER))
-        .style(Style::default().bg(FrozenGlass::SURFACE_ALT).fg(FrozenGlass::TEXT))
+        .style(
+            Style::default()
+                .bg(FrozenGlass::SURFACE_ALT)
+                .fg(FrozenGlass::TEXT),
+        )
         .title(" output ");
     frame.render_widget(output_block, chunks[1]);
 
@@ -97,8 +114,12 @@ pub fn draw(frame: &mut Frame, app: &crate::App) {
     };
 
     let lines: Vec<Line> = app.output.iter().map(|s| styled_output_line(s)).collect();
-    let output_para = Paragraph::new(lines)
-        .scroll((app.output.len().saturating_sub(output_inner.height as usize) as u16, 0));
+    let output_para = Paragraph::new(lines).scroll((
+        app.output
+            .len()
+            .saturating_sub(output_inner.height as usize) as u16,
+        0,
+    ));
     frame.render_widget(output_para, output_inner);
 
     // Input line.
@@ -106,7 +127,11 @@ pub fn draw(frame: &mut Frame, app: &crate::App) {
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(FrozenGlass::BORDER))
-        .style(Style::default().bg(FrozenGlass::SURFACE_LIGHT).fg(FrozenGlass::TEXT))
+        .style(
+            Style::default()
+                .bg(FrozenGlass::SURFACE_LIGHT)
+                .fg(FrozenGlass::TEXT),
+        )
         .title(" ice:// ");
     frame.render_widget(input_block, chunks[2]);
 
@@ -121,8 +146,8 @@ pub fn draw(frame: &mut Frame, app: &crate::App) {
     } else {
         app.input.clone()
     };
-    let input_para = Paragraph::new(input_display)
-        .style(Style::default().fg(if app.input.is_empty() {
+    let input_para =
+        Paragraph::new(input_display).style(Style::default().fg(if app.input.is_empty() {
             FrozenGlass::TEXT_DIM
         } else {
             FrozenGlass::TEXT

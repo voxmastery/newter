@@ -13,7 +13,12 @@ pub struct Span {
 
 impl Span {
     pub fn new(start: usize, end: usize, line: u32, column: u32) -> Self {
-        Self { start, end, line, column }
+        Self {
+            start,
+            end,
+            line,
+            column,
+        }
     }
 
     pub fn merge(self, other: Span) -> Span {
@@ -90,7 +95,11 @@ impl NewtError {
         }
     }
 
-    pub fn lexer_with_suggestion(span: Span, message: impl Into<String>, suggestion: impl Into<String>) -> Self {
+    pub fn lexer_with_suggestion(
+        span: Span,
+        message: impl Into<String>,
+        suggestion: impl Into<String>,
+    ) -> Self {
         Self::Lexer {
             span,
             message: message.into(),
@@ -106,7 +115,11 @@ impl NewtError {
         }
     }
 
-    pub fn parse_with_suggestion(span: Span, message: impl Into<String>, suggestion: impl Into<String>) -> Self {
+    pub fn parse_with_suggestion(
+        span: Span,
+        message: impl Into<String>,
+        suggestion: impl Into<String>,
+    ) -> Self {
         Self::Parse {
             span,
             message: message.into(),
@@ -124,14 +137,18 @@ impl NewtError {
 
     pub fn span(&self) -> Option<Span> {
         match self {
-            Self::Lexer { span, .. } | Self::Parse { span, .. } | Self::Semantic { span, .. } => Some(*span),
+            Self::Lexer { span, .. } | Self::Parse { span, .. } | Self::Semantic { span, .. } => {
+                Some(*span)
+            }
             _ => None,
         }
     }
 
     pub fn suggestion(&self) -> Option<&str> {
         match self {
-            Self::Lexer { suggestion: s, .. } | Self::Parse { suggestion: s, .. } | Self::Semantic { suggestion: s, .. } => s.as_deref(),
+            Self::Lexer { suggestion: s, .. }
+            | Self::Parse { suggestion: s, .. }
+            | Self::Semantic { suggestion: s, .. } => s.as_deref(),
             _ => None,
         }
     }
